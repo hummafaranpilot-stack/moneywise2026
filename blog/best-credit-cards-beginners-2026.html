@@ -511,16 +511,16 @@
   <script src="../assets/js/main.js" defer></script>
 
   <!-- AD-1: Anchor Sticky Bottom (Test Mode) -->
-  <div id="anchor-ad-container" style="position:fixed; bottom:0; left:0; right:0; z-index:9999; background:#fff; border-top:1px solid #ddd; padding:10px; text-align:center; box-shadow:0 -2px 10px rgba(0,0,0,0.1);">
-    <button onclick="document.getElementById('anchor-ad-container').style.display='none';" style="position:absolute; top:5px; right:10px; background:transparent; border:none; font-size:20px; cursor:pointer; color:#666;">&times;</button>
-    <p style="font-size:10px; color:#888; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px;">Advertisement</p>
-    <ins class="adsbygoogle"
-         style="display:inline-block; width:320px; height:50px; background:#f0f0f0;"
+  <div id="anchor-ad-container">
+    <button id="anchor-ad-close" aria-label="Close ad" onclick="document.getElementById('anchor-ad-container').style.display='none'; document.body.classList.remove('anchor-ad-active');">&times;</button>
+    <p class="anchor-ad-label">Advertisement</p>
+    <ins class="adsbygoogle anchor-ad-unit"
          data-ad-client="ca-pub-0000000000000000"
          data-ad-slot="1111111111"
          data-adtest="on"></ins>
     <script>
          (adsbygoogle = window.adsbygoogle || []).push({});
+         document.body.classList.add('anchor-ad-active');
     </script>
   </div>
 
