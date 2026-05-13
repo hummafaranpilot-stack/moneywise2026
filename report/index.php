@@ -124,7 +124,7 @@ $rows = $listStmt->fetchAll();
 
 // ---------------- Filter dropdown values ----------------
 $countries = db()->query("
-    SELECT country_code, ANY_VALUE(country) AS country, COUNT(*) c FROM visitors
+    SELECT country_code, MAX(country) AS country, COUNT(*) c FROM visitors
     WHERE country_code IS NOT NULL AND country_code != ''
     GROUP BY country_code ORDER BY c DESC LIMIT 50
 ")->fetchAll();
