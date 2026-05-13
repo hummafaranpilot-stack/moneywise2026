@@ -84,22 +84,22 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
 }
 
 // ---------------- Stats (today) ----------------
-function stat(string $sql, array $params = []) {
+function dbScalar(string $sql, array $params = []) {
     $stmt = db()->prepare($sql);
     $stmt->execute($params);
     return $stmt->fetchColumn();
 }
 
 $today        = date('Y-m-d');
-$totalToday   = (int) stat("SELECT COUNT(*) FROM visitors WHERE DATE(visit_time) = ?", [$today]);
-$highRisk     = (int) stat("SELECT COUNT(*) FROM visitors WHERE DATE(visit_time) = ? AND risk_level = 'high'", [$today]);
-$avgRisk      = (float) stat("SELECT AVG(risk_score) FROM visitors WHERE DATE(visit_time) = ?", [$today]);
-$topSource    = (string) stat(
+$totalToday   = (int) dbScalar("SELECT COUNT(*) FROM visitors WHERE DATE(visit_time) = ?", [$today]);
+$highRisk     = (int) dbScalar("SELECT COUNT(*) FROM visitors WHERE DATE(visit_time) = ? AND risk_level = 'high'", [$today]);
+$avgRisk      = (float) dbScalar("SELECT AVG(risk_score) FROM visitors WHERE DATE(visit_time) = ?", [$today]);
+$topSource    = (string) dbScalar(
     "SELECT traffic_source FROM visitors WHERE DATE(visit_time) = ?
      GROUP BY traffic_source ORDER BY COUNT(*) DESC LIMIT 1",
     [$today]
 ) ?: '—';
-$totalAllTime = (int) stat("SELECT COUNT(*) FROM visitors");
+$totalAllTime = (int) dbScalar("SELECT COUNT(*) FROM visitors");
 
 // ---------------- Total filtered count ----------------
 $countStmt = db()->prepare("SELECT COUNT(*) FROM visitors WHERE $whereSql");
