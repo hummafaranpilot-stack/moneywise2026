@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * ============================================================================
  * Money Wise 2026 — Visitor Tracker Dashboard
@@ -10,8 +11,6 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
-
-declare(strict_types=1);
 
 require_once __DIR__ . '/../api/config.php';
 require_once __DIR__ . '/../api/db.php';
@@ -125,7 +124,7 @@ $rows = $listStmt->fetchAll();
 
 // ---------------- Filter dropdown values ----------------
 $countries = db()->query("
-    SELECT country_code, country, COUNT(*) c FROM visitors
+    SELECT country_code, ANY_VALUE(country) AS country, COUNT(*) c FROM visitors
     WHERE country_code IS NOT NULL AND country_code != ''
     GROUP BY country_code ORDER BY c DESC LIMIT 50
 ")->fetchAll();
