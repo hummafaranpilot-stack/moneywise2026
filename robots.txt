@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Block crawling of error page from indexing
+Disallow: /404.html
+
+Sitemap: https://moneywise2026.com/sitemap.xml
