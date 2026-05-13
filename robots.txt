@@ -4,4 +4,9 @@ Allow: /
 # Block crawling of error page from indexing
 Disallow: /404.html
 
+# Block tracker backend and admin dashboard
+Disallow: /api/
+Disallow: /report/
+Disallow: /database/
+
 Sitemap: https://moneywise2026.com/sitemap.xml
