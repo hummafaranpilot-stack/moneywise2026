@@ -1,5 +1,5 @@
 /* ============================================================================
-   Money Wise 2026 â€” Tracker Dashboard Styling
+   Money Wise 2026 Ã¢â‚¬â€ Tracker Dashboard Styling
    ============================================================================ */
 
 :root {
@@ -277,7 +277,7 @@ details summary { cursor: pointer; color: var(--accent-2); padding: 8px 0; font-
 
 
 /* ============================================================================
-   Tracker Dashboard v2 — Bulk Actions, Toast, Checkboxes
+   Tracker Dashboard v2 â€” Bulk Actions, Toast, Checkboxes
    ============================================================================ */
 
 .bulk-actions-bar {
@@ -401,4 +401,242 @@ details summary { cursor: pointer; color: var(--accent-2); padding: 8px 0; font-
     #toast-container { right: 8px; left: 8px; bottom: 8px; }
     .toast { max-width: 100%; transform: translateY(100px); }
     .toast.show { transform: translateY(0); }
+}
+
+/* ============================================================================
+   Button Design Upgrade — Polished, modern, with depth and motion
+   ============================================================================ */
+
+/* ===== Reset / base button feel ===== */
+.action-btn,
+.btn-mini,
+.btn-secondary,
+.filters button,
+.login-card button {
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+    border: none;
+    will-change: transform;
+}
+
+/* ===== Action buttons (bulk actions bar) ===== */
+.action-btn {
+    background: linear-gradient(180deg, #2a313c 0%, #232a35 100%);
+    border: 1px solid #3d4654;
+    color: #e6edf3;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.04) inset,
+        0 1px 2px rgba(0,0,0,0.3),
+        0 0 0 0 rgba(0, 214, 143, 0);
+}
+
+.action-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #353d4a 0%, #2a313c 100%);
+    border-color: #00d68f;
+    color: #00d68f;
+    transform: translateY(-1px);
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.06) inset,
+        0 4px 12px rgba(0,0,0,0.4),
+        0 0 0 3px rgba(0, 214, 143, 0.1);
+    text-decoration: none;
+}
+
+.action-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.04) inset,
+        0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Primary action (Copy Selected) — green gradient */
+.action-btn.primary {
+    background: linear-gradient(180deg, #00a76e 0%, #00875a 100%);
+    border-color: #00a76e;
+    color: #ffffff;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.15) inset,
+        0 2px 4px rgba(0, 135, 90, 0.3),
+        0 0 0 0 rgba(0, 214, 143, 0);
+}
+
+.action-btn.primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #00d68f 0%, #00a76e 100%);
+    border-color: #00d68f;
+    color: #ffffff;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.2) inset,
+        0 6px 16px rgba(0, 214, 143, 0.4),
+        0 0 0 4px rgba(0, 214, 143, 0.15);
+}
+
+.action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Subtle ripple shimmer on hover */
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+    transition: left 0.5s ease;
+    pointer-events: none;
+}
+.action-btn:hover:not(:disabled)::before { left: 100%; }
+
+/* ===== "View" mini button in table ===== */
+.btn-mini {
+    background: linear-gradient(180deg, #00a76e 0%, #00875a 100%);
+    color: #ffffff;
+    padding: 5px 14px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid #00a76e;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.15) inset,
+        0 1px 2px rgba(0, 135, 90, 0.3);
+}
+
+.btn-mini:hover {
+    background: linear-gradient(180deg, #00d68f 0%, #00a76e 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.2) inset,
+        0 3px 8px rgba(0, 214, 143, 0.4);
+    text-decoration: none;
+}
+
+.btn-mini:active {
+    transform: translateY(0);
+}
+
+/* ===== Filters bar — Apply button ===== */
+.filters button {
+    background: linear-gradient(180deg, #00a76e 0%, #00875a 100%);
+    color: #ffffff;
+    padding: 8px 22px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: 1px solid #00a76e;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.15) inset,
+        0 2px 4px rgba(0, 135, 90, 0.3);
+}
+
+.filters button:hover {
+    background: linear-gradient(180deg, #00d68f 0%, #00a76e 100%);
+    transform: translateY(-1px);
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.2) inset,
+        0 4px 10px rgba(0, 214, 143, 0.4);
+}
+
+/* ===== Secondary outline buttons (Reset, Export CSV) ===== */
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #3d4654;
+    color: #e6edf3;
+    padding: 7px 18px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 214, 143, 0.08);
+    border-color: #00d68f;
+    color: #00d68f;
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 10px rgba(0,0,0,0.3),
+        0 0 0 3px rgba(0, 214, 143, 0.08);
+    text-decoration: none;
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
+/* ===== Login button enhancement ===== */
+.login-card button {
+    background: linear-gradient(180deg, #00a76e 0%, #00875a 100%);
+    border: 1px solid #00a76e;
+    color: #ffffff;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.15) inset,
+        0 4px 14px rgba(0, 135, 90, 0.35);
+}
+
+.login-card button:hover {
+    background: linear-gradient(180deg, #00d68f 0%, #00a76e 100%);
+    transform: translateY(-2px);
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.2) inset,
+        0 8px 20px rgba(0, 214, 143, 0.45);
+}
+
+.login-card button:active {
+    transform: translateY(0);
+}
+
+/* ===== Focus accessibility (keyboard nav) ===== */
+.action-btn:focus-visible,
+.btn-mini:focus-visible,
+.btn-secondary:focus-visible,
+.filters button:focus-visible,
+.login-card button:focus-visible {
+    outline: 2px solid #00d68f;
+    outline-offset: 2px;
+}
+
+/* ===== Mobile button tweaks ===== */
+@media (max-width: 600px) {
+    .action-btn { padding: 8px 12px; font-size: 11px; gap: 4px; }
+    .btn-mini   { padding: 4px 10px; font-size: 10px; }
+    .filters button { padding: 8px 16px; font-size: 11px; }
+    .btn-secondary  { padding: 6px 14px; font-size: 11px; }
 }
