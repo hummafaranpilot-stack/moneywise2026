@@ -64,15 +64,34 @@ $fullData       = jget($v, 'full_data', []);
 
 // ---------------- Helpers ----------------
 function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+
+// Wrapper class — signals to row() that this value is already-safe HTML
+// and must NOT be escaped again. Use this for ynBadge(), flagEmoji+text concat, etc.
+class RawHtml {
+    public string $html;
+    public function __construct(string $html) { $this->html = $html; }
+    public function __toString(): string { return $this->html; }
+}
+function raw(string $html): RawHtml { return new RawHtml($html); }
+
 function flagEmoji(?string $cc): string {
     if (!$cc || strlen($cc) !== 2) return '🌐';
     $cc = strtoupper($cc);
     return mb_chr(0x1F1E6 + (ord($cc[0]) - 65)) . mb_chr(0x1F1E6 + (ord($cc[1]) - 65));
 }
-function ynBadge($v): string { return $v ? '<span class="yn yes">YES</span>' : '<span class="yn no">no</span>'; }
+function ynBadge($v): RawHtml {
+    return raw($v ? '<span class="yn yes">YES</span>' : '<span class="yn no">no</span>');
+}
 function row(string $label, $value, bool $mono = false) {
     if ($value === null || $value === '') $value = '—';
-    echo '<tr><th>' . h($label) . '</th><td' . ($mono ? ' class="mono"' : '') . '>' . (is_string($value) ? h($value) : $value) . '</td></tr>';
+    if ($value instanceof RawHtml) {
+        $rendered = $value->html;
+    } elseif (is_string($value)) {
+        $rendered = h($value);
+    } else {
+        $rendered = h((string)$value);
+    }
+    echo '<tr><th>' . h($label) . '</th><td' . ($mono ? ' class="mono"' : '') . '>' . $rendered . '</td></tr>';
 }
 function flagExplanation(string $f): string {
     $map = [
@@ -160,7 +179,7 @@ function flagExplanation(string $f): string {
     <table class="kv">
       <?php
       row('IP Address', $v['ip_address'], true);
-      row('Country', flagEmoji($v['country_code']) . ' ' . h($v['country'] ?: '—'));
+      row('Country', raw(flagEmoji($v['country_code']) . ' ' . h($v['country'] ?: '—')));
       row('Region / City', trim(($v['region'] ?? '') . ' / ' . ($v['city'] ?? '')) ?: '—');
       row('Continent', $v['continent']);
       row('ISP', $v['isp']);
@@ -307,8 +326,8 @@ function flagExplanation(string $f): string {
     <table class="kv">
       <?php
       row('Session Duration', $v['session_duration'] . ' seconds');
-      row('Page Visible Time', $v['page_visible_time'] . ' seconds');
-      row('Page Hidden Time', $v['page_hidden_time'] . ' seconds');
+      row('Page Visible Time', ($v['page_visible_time'] ?? 0) . ' seconds');
+      row('Page Hidden Time',  ($v['page_hidden_time']  ?? 0) . ' seconds');
       row('Mouse Movements', $v['mouse_movements_count'] ?? $v['mouse_movements']);
       row('Mouse Clicks', $v['mouse_clicks_count'] ?? $v['clicks_count']);
       row('Scroll Events', $v['scroll_events_count']);

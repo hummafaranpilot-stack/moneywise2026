@@ -1,10 +1,9 @@
 <?php
 /**
  * ============================================================================
- * Money Wise 2026 — Schema Migration Runner v2
- * Runs database/schema_v3.sql (ad_clicks table).
+ * Money Wise 2026 — Schema Migration Runner (v4)
+ * Runs database/schema_v4.sql (page_visible_time + page_hidden_time).
  * Password-protected. Idempotent.
- * Open in browser → enter password → click Run.
  * DELETE THIS FILE after migration completes.
  * ============================================================================
  */
@@ -18,7 +17,7 @@ ini_set('display_errors', '1');
 error_reporting(E_ALL);
 header('Content-Type: text/html; charset=utf-8');
 
-$schemaFile = __DIR__ . '/../database/schema_v3.sql';
+$schemaFile = __DIR__ . '/../database/schema_v4.sql';
 $authed = false;
 $ranResults = null;
 $error = null;
@@ -30,19 +29,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $authed = true;
         if (!file_exists($schemaFile)) {
-            $error = 'schema_v3.sql not found at: ' . $schemaFile;
+            $error = 'schema_v4.sql not found at: ' . $schemaFile;
         } else {
             $sql = file_get_contents($schemaFile);
             $sql = preg_replace('/^\s*--.*$/m', '', $sql);
-            // Split on semicolons but keep multi-line CREATE statements together
             $statements = array_filter(array_map('trim', explode(';', $sql)));
             $ranResults = [];
             $pdo = db();
             foreach ($statements as $stmt) {
                 $label = '';
-                if (preg_match('/CREATE TABLE IF NOT EXISTS\s+`?(\w+)`?/i', $stmt, $m))     $label = 'CREATE TABLE ' . $m[1];
-                elseif (preg_match('/ALTER TABLE\s+`?(\w+)`?/i', $stmt, $m))                $label = 'ALTER TABLE ' . $m[1];
-                else $label = substr(preg_replace('/\s+/', ' ', $stmt), 0, 60) . '…';
+                if (preg_match('/ADD COLUMN IF NOT EXISTS\s+`?(\w+)`?/i', $stmt, $m)) {
+                    $label = 'ADD COLUMN ' . $m[1];
+                } elseif (preg_match('/CREATE TABLE IF NOT EXISTS\s+`?(\w+)`?/i', $stmt, $m)) {
+                    $label = 'CREATE TABLE ' . $m[1];
+                } else {
+                    $label = substr(preg_replace('/\s+/', ' ', $stmt), 0, 60) . '…';
+                }
                 try {
                     $pdo->exec($stmt);
                     $ranResults[] = ['stmt' => $label, 'status' => 'OK', 'error' => null];
@@ -64,49 +66,38 @@ function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>Schema v3 Migration — Money Wise 2026</title>
+  <title>Schema v4 Migration — Money Wise 2026</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #0f1419; color: #e6edf3; padding: 20px; margin: 0; line-height: 1.5; }
     .wrap { max-width: 900px; margin: 0 auto; }
     h1 { font-family: Georgia, serif; color: #00d68f; margin-top: 0; }
-    .card { background: #1a2028; border: 1px solid #2d3540; border-radius: 8px;
-      padding: 24px; margin-bottom: 20px; }
-    label { display: block; font-size: 12px; text-transform: uppercase;
-      letter-spacing: 0.1em; color: #8b949e; margin-bottom: 6px; }
-    input[type="password"] { width: 100%; padding: 12px; background: #232a35;
-      border: 1px solid #2d3540; color: #e6edf3; border-radius: 6px;
-      font-size: 16px; box-sizing: border-box; }
+    .card { background: #1a2028; border: 1px solid #2d3540; border-radius: 8px; padding: 24px; margin-bottom: 20px; }
+    label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #8b949e; margin-bottom: 6px; }
+    input[type="password"] { width: 100%; padding: 12px; background: #232a35; border: 1px solid #2d3540; color: #e6edf3; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
     input[type="password"]:focus { outline: none; border-color: #00d68f; }
-    button { margin-top: 14px; padding: 12px 24px; background: #00875a;
-      color: white; border: none; border-radius: 6px; font-size: 14px;
-      font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; }
+    button { margin-top: 14px; padding: 12px 24px; background: #00875a; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; }
     button:hover { background: #00d68f; }
-    .err { background: rgba(248,81,73,0.1); border: 1px solid #f85149;
-      color: #f85149; padding: 12px; border-radius: 6px; margin-bottom: 16px; }
-    .summary { background: rgba(0,135,90,0.1); border: 1px solid #00875a;
-      color: #00d68f; padding: 14px 18px; border-radius: 6px; margin-bottom: 16px;
-      font-weight: 600; }
+    .err { background: rgba(248,81,73,0.1); border: 1px solid #f85149; color: #f85149; padding: 12px; border-radius: 6px; margin-bottom: 16px; }
+    .summary { background: rgba(0,135,90,0.1); border: 1px solid #00875a; color: #00d68f; padding: 14px 18px; border-radius: 6px; margin-bottom: 16px; font-weight: 600; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
     th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #2d3540; }
-    th { background: #232a35; color: #8b949e; font-size: 11px;
-      text-transform: uppercase; letter-spacing: 0.08em; }
+    th { background: #232a35; color: #8b949e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
     .ok      { color: #3fb950; font-weight: 700; }
     .exists  { color: #d29922; font-weight: 700; }
     .err-cell{ color: #f85149; font-weight: 700; }
-    .warn { background: rgba(210,153,34,0.1); border: 1px solid #d29922;
-      color: #d29922; padding: 16px; border-radius: 6px; margin-top: 24px; font-size: 14px; }
+    .warn { background: rgba(210,153,34,0.1); border: 1px solid #d29922; color: #d29922; padding: 16px; border-radius: 6px; margin-top: 24px; font-size: 14px; }
     code { background: #232a35; padding: 2px 8px; border-radius: 4px; color: #00d68f; }
   </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>🗄️ Schema v3 Migration</h1>
-  <p style="color: #8b949e;">Adds <code>ad_clicks</code> table for click tracking.</p>
+  <h1>🗄️ Schema v4 Migration</h1>
+  <p style="color: #8b949e;">Adds <code>page_visible_time</code> + <code>page_hidden_time</code> behavior columns.</p>
 
   <?php if (!$authed): ?>
     <div class="card">
-      <p>Enter dashboard password to run <code>schema_v3.sql</code>. Idempotent — safe to re-run.</p>
+      <p>Enter dashboard password to run <code>schema_v4.sql</code>. Idempotent — safe to re-run.</p>
       <?php if ($error): ?><div class="err"><?= h($error) ?></div><?php endif; ?>
       <form method="POST" autocomplete="off">
         <label for="pw">Dashboard Password</label>
@@ -149,12 +140,14 @@ function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       </div>
       <?php
       try {
-          $tableExists = (int)db()->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'ad_clicks'")->fetchColumn();
-      } catch (Exception $e) { $tableExists = 0; }
+          $v1 = (int)db()->query("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'visitors' AND column_name = 'page_visible_time'")->fetchColumn();
+          $v2 = (int)db()->query("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'visitors' AND column_name = 'page_hidden_time'")->fetchColumn();
+      } catch (Exception $e) { $v1 = 0; $v2 = 0; }
       ?>
       <div class="card">
         <h3 style="margin-top:0;">Verification</h3>
-        <p>✅ <code>ad_clicks</code> table exists: <strong><?= $tableExists ? 'YES' : 'NO' ?></strong></p>
+        <p>✅ <code>page_visible_time</code> column exists: <strong><?= $v1 ? 'YES' : 'NO' ?></strong></p>
+        <p>✅ <code>page_hidden_time</code> column exists: <strong><?= $v2 ? 'YES' : 'NO' ?></strong></p>
       </div>
     <?php endif; ?>
 
