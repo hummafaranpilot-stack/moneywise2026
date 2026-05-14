@@ -762,11 +762,23 @@ details summary { cursor: pointer; color: var(--accent-2); padding: 8px 0; font-
 /* ============ Time element ============ */
 time[data-ts] {
     cursor: help;
-    border-bottom: 1px dotted transparent;
-    transition: border-color 0.15s;
+    display: inline-block;
+    line-height: 1.2;
 }
-time[data-ts]:hover {
-    border-bottom-color: var(--text-dim);
+.time-rel {
+    display: block;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    white-space: nowrap;
+}
+.time-abs {
+    display: block;
+    color: var(--text-dim);
+    font-size: 10px;
+    margin-top: 2px;
+    white-space: nowrap;
+    font-family: "SF Mono", Consolas, monospace;
 }
 
 /* ============ Toast notifications ============ */

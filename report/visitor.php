@@ -508,6 +508,35 @@ function flagExplanation(string $f): string {
       showToast('✗ Error: ' + e.message, 'error');
     }
   });
+
+  // ---------- Relative time updater ----------
+  function relTime(unix) {
+    if (!unix) return '—';
+    var diff = Math.floor(Date.now() / 1000) - unix;
+    if (diff < 0) diff = 0;
+    if (diff < 5)        return 'a few seconds ago';
+    if (diff < 60)       return diff + ' seconds ago';
+    if (diff < 120)      return '1 minute ago';
+    if (diff < 3600)     return Math.floor(diff / 60) + ' minutes ago';
+    if (diff < 7200)     return '1 hour ago';
+    if (diff < 86400)    return Math.floor(diff / 3600) + ' hours ago';
+    if (diff < 172800)   return 'yesterday';
+    if (diff < 2592000)  return Math.floor(diff / 86400) + ' days ago';
+    if (diff < 5184000)  return '1 month ago';
+    if (diff < 31536000) return Math.floor(diff / 2592000) + ' months ago';
+    return Math.floor(diff / 31536000) + ' years ago';
+  }
+  function refreshTimes() {
+    document.querySelectorAll('time[data-ts]').forEach(function(el) {
+      var ts = parseInt(el.getAttribute('data-ts'), 10);
+      if (!ts) return;
+      if (!el.dataset.absolute) el.dataset.absolute = el.textContent;
+      el.textContent = relTime(ts) + ' (' + el.dataset.absolute + ')';
+      el.title = el.dataset.absolute;
+    });
+  }
+  refreshTimes();
+  setInterval(refreshTimes, 30000);
 })();
 </script>
 
