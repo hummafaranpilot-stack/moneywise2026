@@ -173,7 +173,7 @@ function pktTime(?string $mysqlDt): array {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Tracker Dashboard — Money Wise 2026</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=<?= @filemtime(__DIR__ . '/style.css') ?: time() ?>">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 </head>
 <body>
@@ -380,33 +380,6 @@ function pktTime(?string $mysqlDt): array {
 </footer>
 
 <script>
-// ---------- Relative time (auto-refreshing every 30s) ----------
-(function() {
-  function relTime(ts) {
-    var diff = Math.floor(Date.now() / 1000) - ts;
-    if (diff < 5)        return 'just now';
-    if (diff < 60)       return diff + 's ago';
-    var m = Math.floor(diff / 60);
-    if (m < 60)          return m + (m === 1 ? ' min ago' : ' mins ago');
-    var h = Math.floor(m / 60);
-    if (h < 24)          return h + (h === 1 ? ' hr ago' : ' hrs ago');
-    var d = Math.floor(h / 24);
-    if (d < 7)           return d + (d === 1 ? ' day ago' : ' days ago');
-    if (d < 30)          return Math.floor(d/7) + 'w ago';
-    return null;
-  }
-  function refreshTimes() {
-    document.querySelectorAll('time[data-ts]').forEach(function(el) {
-      var ts = parseInt(el.dataset.ts, 10);
-      if (!ts) return;
-      var rel = relTime(ts);
-      if (rel) el.textContent = rel;
-    });
-  }
-  refreshTimes();
-  setInterval(refreshTimes, 30000);
-})();
-
 (function() {
   'use strict';
   var selectAll  = document.getElementById('select-all-checkbox');

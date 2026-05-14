@@ -139,7 +139,7 @@ function flagExplanation(string $f): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Visitor #<?= (int)$v['id'] ?> — Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=<?= @filemtime(__DIR__ . '/style.css') ?: time() ?>">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 </head>
 <body>
