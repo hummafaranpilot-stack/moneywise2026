@@ -101,6 +101,15 @@ $topSource    = (string) dbScalar(
 ) ?: '—';
 $totalAllTime = (int) dbScalar("SELECT COUNT(*) FROM visitors");
 
+// Ad click stats (gracefully handle missing ad_clicks table)
+try {
+    $clicksToday = (int) dbScalar("SELECT COUNT(*) FROM ad_clicks WHERE DATE(clicked_at) = ?", [$today]);
+    $clicksTotal = (int) dbScalar("SELECT COUNT(*) FROM ad_clicks");
+} catch (Exception $e) {
+    $clicksToday = 0;
+    $clicksTotal = 0;
+}
+
 // ---------------- Total filtered count ----------------
 $countStmt = db()->prepare("SELECT COUNT(*) FROM visitors WHERE $whereSql");
 $countStmt->execute($params);
@@ -191,6 +200,14 @@ function duration(int $s): string {
     <div class="stat-card stat-muted">
       <div class="stat-label">All-Time Visits</div>
       <div class="stat-value"><?= number_format($totalAllTime) ?></div>
+    </div>
+    <div class="stat-card" style="border-color: #58a6ff;">
+      <div class="stat-label">Ad Clicks Today</div>
+      <div class="stat-value" style="color: #58a6ff;"><?= number_format($clicksToday) ?></div>
+    </div>
+    <div class="stat-card stat-muted">
+      <div class="stat-label">Total Ad Clicks</div>
+      <div class="stat-value"><?= number_format($clicksTotal) ?></div>
     </div>
   </section>
 

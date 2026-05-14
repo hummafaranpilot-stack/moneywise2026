@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Money Wise 2026 â€” Editorial Finance Publication Stylesheet
+   Money Wise 2026 Ã¢â‚¬â€ Editorial Finance Publication Stylesheet
    ========================================================================== */
 
 /* ---------- CSS Custom Properties ---------- */
@@ -1209,7 +1209,7 @@ main {
 /* ---------- Ad Placeholder Spots ---------- */
 .ad-placeholder {
   display: none;
-  /* AdSense placeholders â€” uncomment & populate when approved */
+  /* AdSense placeholders Ã¢â‚¬â€ uncomment & populate when approved */
 }
 
 /* ---------- 404 Page ---------- */
@@ -1397,7 +1397,7 @@ main {
 
 
 /* ============================================================================
-   Ad Container Styling (AdSense Test Ads) — Mobile-first responsive
+   Ad Container Styling (AdSense Test Ads) â€” Mobile-first responsive
    ============================================================================ */
 
 /* Hard containment: prevent any AdSense iframe from forcing horizontal overflow */
@@ -1581,4 +1581,106 @@ body.anchor-ad-active {
         max-width: 300px !important;
     }
     .adsbygoogle[data-adtest="on"]::after { font-size: 9px; }
+}
+
+/* ============================================================================
+   Clickable Ad Hover + Mobile Responsive (selective, non-breaking)
+   ============================================================================ */
+
+.ad-container a {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ad-container a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    text-decoration: none;
+}
+
+/* Multiplex sub-ad cards lift on hover */
+.ad-multiplex-grid a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
+
+/* Anchor ad apply button hover */
+#anchor-ad a:hover span {
+    background: #004499;
+}
+
+/* ===== Mobile: stack ads vertically, reduce sizes ===== */
+@media (max-width: 600px) {
+    /* Native + video ad inner flex containers — stack vertically */
+    .ad-container > a > div[style*="display:flex"] {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 12px !important;
+    }
+
+    /* Image/icon block: full width on mobile */
+    .ad-container > a > div[style*="display:flex"] > div:first-child {
+        width: 100% !important;
+        max-width: 240px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Native ad (flex layout direct on <a>): stack */
+    .ad-container > a[style*="display:flex"] {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+
+    .ad-container > a[style*="display:flex"] > div:first-child {
+        width: 100% !important;
+        max-width: 280px !important;
+        margin: 0 auto !important;
+    }
+
+    /* Smaller headings */
+    .ad-container h3 { font-size: 18px !important; }
+    .ad-container h4 { font-size: 16px !important; }
+    .ad-container p  { font-size: 13px !important; }
+
+    /* Multiplex grid: 2 columns at mobile, 1 at small mobile */
+    .ad-multiplex-grid > div[style*="grid"],
+    .ad-multiplex-grid .multiplex-row {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    /* Anchor ad — compact on mobile */
+    #anchor-ad {
+        padding: 6px 8px !important;
+    }
+    #anchor-ad p {
+        padding-left: 0 !important;
+        margin-bottom: 2px !important;
+        font-size: 8px !important;
+    }
+    #anchor-ad a > div:first-child {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 18px !important;
+    }
+    #anchor-ad a > div:nth-child(2) > div:first-child {
+        font-size: 12px !important;
+    }
+    #anchor-ad a > div:nth-child(2) > div:last-child {
+        font-size: 10px !important;
+    }
+    #anchor-ad span {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+    }
+    body.anchor-ad-active { padding-bottom: 80px; }
+}
+
+@media (max-width: 380px) {
+    .ad-multiplex-grid > div[style*="grid"],
+    .ad-multiplex-grid .multiplex-row {
+        grid-template-columns: 1fr !important;
+    }
+    .ad-container h3 { font-size: 16px !important; }
+    .ad-container h4 { font-size: 15px !important; }
 }

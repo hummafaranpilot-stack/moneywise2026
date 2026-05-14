@@ -132,11 +132,43 @@
   <!-- Money Wise 2026 Visitor Tracker -->
   <script defer src="/assets/js/tracker.js"></script>
 
-  <!-- AdSense Test Mode -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-0000000000000000" crossorigin="anonymous"></script>
-
 </head>
 <body>
+
+  <!-- Ad Click Tracking -->
+  <script>
+  window.MW_PAGE_LOAD_TIME = Date.now();
+  function trackAdClick(adId, adFormat, adPosition, targetUrl, event) {
+    if (event) event.preventDefault();
+    var data = {
+      visitor_id:    localStorage.getItem('mw_vid'),
+      session_id:    sessionStorage.getItem('mw_sid'),
+      ad_id:         adId,
+      ad_format:     adFormat,
+      ad_position:   adPosition,
+      click_x:       event ? event.clientX : null,
+      click_y:       event ? event.clientY : null,
+      time_to_click: Date.now() - window.MW_PAGE_LOAD_TIME,
+      target_url:    targetUrl,
+      page_url:      window.location.href
+    };
+    try {
+      var body = JSON.stringify(data);
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/click_log.php', new Blob([body], {type:'application/json'}));
+      } else {
+        fetch('/api/click_log.php', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: body,
+          keepalive: true
+        }).catch(function(){});
+      }
+    } catch (e) {}
+    setTimeout(function(){ window.open(targetUrl, '_blank', 'noopener,noreferrer'); }, 100);
+    return false;
+  }
+  </script>
 
   <header class="site-header">
     <nav class="nav-wrapper" aria-label="Main navigation">
@@ -181,35 +213,39 @@
 
       <div class="article-content">
 
-        <!-- AD-2: Outstream Video Top (Test Mode) -->
-        <div class="ad-container ad-video-top">
-            <p>Advertisement</p>
-            <ins class="adsbygoogle"
-                 style="display:block; min-height:280px; background:#f0f0f0;"
-                 data-ad-client="ca-pub-0000000000000000"
-                 data-ad-slot="2222222222"
-                 data-ad-format="video"
-                 data-adtest="on"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- AD-2: Video-Style Top Ad (Clickable) -->
+        <div class="ad-container" style="margin: 30px 0;">
+            <p style="font-size: 10px; color: #999; text-align: center; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px;">Advertisement</p>
+            <a href="#" onclick="return trackAdClick('ad-2', 'video', 'top', 'https://example-credit-experts.com', event)"
+               style="display:block; background:linear-gradient(135deg, #1a1a2e, #16213e); border-radius:12px; padding:30px; text-decoration:none; color:#fff; position:relative; overflow:hidden;">
+                <div style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:4px; font-size:11px;">▶ Sponsored Video</div>
+                <div style="display:flex; align-items:center; gap:25px; flex-wrap:wrap;">
+                    <div style="width:120px; height:120px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:48px; flex-shrink:0;">🎬</div>
+                    <div style="flex:1; min-width:200px;">
+                        <div style="font-size:11px; color:#a0c4ff; margin-bottom:5px; letter-spacing:1px;">CREDIT EXPERTS</div>
+                        <h3 style="margin:0 0 8px 0; font-size:22px; color:#fff; font-family:inherit;">Why 87% of Americans Have Bad Credit (And How to Fix It Fast)</h3>
+                        <p style="margin:0 0 15px 0; color:#ccc; font-size:14px;">Watch this 3-minute video to discover the credit hack banks don't want you to know.</p>
+                        <span style="display:inline-block; background:#ff6b35; color:#fff; padding:12px 24px; border-radius:6px; font-weight:600;">▶ Watch Now</span>
+                    </div>
+                </div>
+            </a>
         </div>
 
         <p>Getting your first credit card is one of the most consequential financial decisions you&rsquo;ll make as a young adult. The card you choose today will shape your credit history, influence the interest rates you pay on future loans, and set the tone for how you relate to credit for years to come. Yet beginner credit cards are also surrounded by marketing noise designed to maximize issuer profits rather than your financial health. This guide cuts through that noise. It explains what actually matters in a starter card, the types of cards worth considering in 2026, and the habits that turn a first credit card into a foundation for strong long-term credit.</p>
 
-        <!-- AD-3: In-Article Native #1 (Test Mode) -->
-        <div class="ad-container ad-in-article">
-            <p>Advertisement</p>
-            <ins class="adsbygoogle"
-                 style="display:block; min-height:250px; text-align:center; background:#f0f0f0;"
-                 data-ad-layout="in-article"
-                 data-ad-format="fluid"
-                 data-ad-client="ca-pub-0000000000000000"
-                 data-ad-slot="3333333333"
-                 data-adtest="on"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- AD-3: In-Article Native (Clickable) -->
+        <div class="ad-container" style="margin: 40px 0;">
+            <p style="font-size: 10px; color: #999; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px;">Sponsored</p>
+            <a href="#" onclick="return trackAdClick('ad-3', 'native', 'after-intro', 'https://example-cashback-card.com', event)"
+               style="display:flex; gap:20px; background:#fff; border:1px solid #e0e0e0; padding:20px; border-radius:8px; text-decoration:none; color:#333; flex-wrap:wrap;">
+                <div style="width:140px; height:90px; background:linear-gradient(45deg,#00875a,#00b377); border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px; flex-shrink:0;">💰</div>
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:11px; color:#00875a; font-weight:600; margin-bottom:5px; letter-spacing:1px;">PREMIUM CASHBACK</div>
+                    <h4 style="margin:0 0 8px 0; font-size:18px; color:#1a1a1a; font-family:inherit;">Earn 5% Cashback on Everyday Purchases &mdash; No Annual Fee</h4>
+                    <p style="margin:0 0 8px 0; color:#666; font-size:14px;">Join over 2 million members who get rewarded for spending. Approval in seconds.</p>
+                    <span style="color:#0066cc; font-size:13px; font-weight:600;">example-cashback-card.com →</span>
+                </div>
+            </a>
         </div>
 
         <h2>Why Your First Credit Card Matters More Than You Think</h2>
@@ -217,19 +253,19 @@
 
         <p>A first card also establishes your payment behavior. Payment history is the single largest component of your credit score, contributing about thirty-five percent. Each month you pay on time, you reinforce a pattern that future lenders interpret as low risk. Each missed payment, even by a few days, can stay on your report for up to seven years. The stakes for a beginner are not the rewards or the credit limit; they are the credit narrative you are about to start writing.</p>
 
-        <!-- AD-4: In-Article Native #2 (Test Mode) -->
-        <div class="ad-container ad-in-article">
-            <p>Advertisement</p>
-            <ins class="adsbygoogle"
-                 style="display:block; min-height:250px; text-align:center; background:#f0f0f0;"
-                 data-ad-layout="in-article"
-                 data-ad-format="fluid"
-                 data-ad-client="ca-pub-0000000000000000"
-                 data-ad-slot="4444444444"
-                 data-adtest="on"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- AD-4: In-Article Native (Clickable) -->
+        <div class="ad-container" style="margin: 40px 0;">
+            <p style="font-size: 10px; color: #999; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px;">Sponsored</p>
+            <a href="#" onclick="return trackAdClick('ad-4', 'native', 'after-section-1', 'https://example-credit-score.com', event)"
+               style="display:flex; gap:20px; background:#fff; border:1px solid #e0e0e0; padding:20px; border-radius:8px; text-decoration:none; color:#333; flex-wrap:wrap;">
+                <div style="width:140px; height:90px; background:linear-gradient(45deg,#7b2cbf,#9d4edd); border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px; flex-shrink:0;">📊</div>
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:11px; color:#7b2cbf; font-weight:600; margin-bottom:5px; letter-spacing:1px;">FREE CREDIT REPORT</div>
+                    <h4 style="margin:0 0 8px 0; font-size:18px; color:#1a1a1a; font-family:inherit;">Check Your Credit Score Free &mdash; No Credit Card Required</h4>
+                    <p style="margin:0 0 8px 0; color:#666; font-size:14px;">See your FICO score from all 3 bureaus instantly. Used by 50M+ Americans.</p>
+                    <span style="color:#0066cc; font-size:13px; font-weight:600;">example-credit-score.com →</span>
+                </div>
+            </a>
         </div>
 
         <h2>What to Look for in a Beginner Credit Card</h2>
@@ -247,18 +283,22 @@
         <h3>Free Credit Score Access</h3>
         <p>Most major issuers now offer free FICO or VantageScore access through their mobile app or online dashboard. This is a useful learning tool for your first card. Watching your score respond to your behavior accelerates financial literacy in a way no article can match.</p>
 
-        <!-- AD-5: Outstream Video Mid (Test Mode) -->
-        <div class="ad-container ad-video-mid">
-            <p>Advertisement</p>
-            <ins class="adsbygoogle"
-                 style="display:block; min-height:280px; background:#f0f0f0;"
-                 data-ad-client="ca-pub-0000000000000000"
-                 data-ad-slot="5555555555"
-                 data-ad-format="video"
-                 data-adtest="on"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- AD-5: Video-Style Mid (Clickable) -->
+        <div class="ad-container" style="margin: 40px 0;">
+            <p style="font-size: 10px; color: #999; text-align: center; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px;">Advertisement</p>
+            <a href="#" onclick="return trackAdClick('ad-5', 'video', 'mid', 'https://example-loan-finder.com', event)"
+               style="display:block; background:linear-gradient(135deg, #2d1b69, #11999e); border-radius:12px; padding:30px; text-decoration:none; color:#fff; position:relative;">
+                <div style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:4px; font-size:11px;">▶ Sponsored</div>
+                <div style="display:flex; align-items:center; gap:25px; flex-wrap:wrap;">
+                    <div style="width:120px; height:120px; background:rgba(255,255,255,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:48px; flex-shrink:0;">💵</div>
+                    <div style="flex:1; min-width:200px;">
+                        <div style="font-size:11px; color:#a0e7e5; margin-bottom:5px; letter-spacing:1px;">LOAN COMPARISON TOOL</div>
+                        <h3 style="margin:0 0 8px 0; font-size:22px; color:#fff; font-family:inherit;">Compare 50+ Personal Loans in 90 Seconds</h3>
+                        <p style="margin:0 0 15px 0; color:#ddd; font-size:14px;">Get rates from top lenders without affecting your credit score. Free service.</p>
+                        <span style="display:inline-block; background:#11999e; color:#fff; padding:12px 24px; border-radius:6px; font-weight:600;">Compare Rates Now</span>
+                    </div>
+                </div>
+            </a>
         </div>
 
         <h2>Categories of Cards Worth Considering</h2>
@@ -272,19 +312,19 @@
         <h3>Credit-Builder Cards from Major Banks</h3>
         <p>Several major US banks now offer unsecured starter cards aimed specifically at applicants with no credit history. These typically have low credit limits (often under $1,000), no annual fee, and basic cashback structures. Approval often requires a US bank account with the issuer or a co-applicant with established credit. <a href="../about.html">Our editorial team</a> generally favors these over subprime cards because the path to upgrade and the issuer&rsquo;s reputation tend to be better.</p>
 
-        <!-- AD-6: In-Article Native #3 (Test Mode) -->
-        <div class="ad-container ad-in-article">
-            <p>Advertisement</p>
-            <ins class="adsbygoogle"
-                 style="display:block; min-height:250px; text-align:center; background:#f0f0f0;"
-                 data-ad-layout="in-article"
-                 data-ad-format="fluid"
-                 data-ad-client="ca-pub-0000000000000000"
-                 data-ad-slot="6666666666"
-                 data-adtest="on"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- AD-6: In-Article Native (Clickable) -->
+        <div class="ad-container" style="margin: 40px 0;">
+            <p style="font-size: 10px; color: #999; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px;">Sponsored</p>
+            <a href="#" onclick="return trackAdClick('ad-6', 'native', 'after-section-3', 'https://example-rewards-cards.com', event)"
+               style="display:flex; gap:20px; background:#fff; border:1px solid #e0e0e0; padding:20px; border-radius:8px; text-decoration:none; color:#333; flex-wrap:wrap;">
+                <div style="width:140px; height:90px; background:linear-gradient(45deg,#ff6b6b,#ee5a6f); border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px; flex-shrink:0;">✈️</div>
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:11px; color:#ee5a6f; font-weight:600; margin-bottom:5px; letter-spacing:1px;">TRAVEL REWARDS</div>
+                    <h4 style="margin:0 0 8px 0; font-size:18px; color:#1a1a1a; font-family:inherit;">Earn 60,000 Points After $4,000 Spend &mdash; Worth $750 in Travel</h4>
+                    <p style="margin:0 0 8px 0; color:#666; font-size:14px;">Best travel rewards card of 2026. No foreign transaction fees. 3X points on dining.</p>
+                    <span style="color:#0066cc; font-size:13px; font-weight:600;">example-rewards-cards.com →</span>
+                </div>
+            </a>
         </div>
 
         <h2>Cards and Features to Avoid</h2>
@@ -297,19 +337,19 @@
           <li><strong>Predatory rent-to-credit or credit-builder loans bundled with cards.</strong> Some products masquerade as credit cards but are actually high-fee installment loans. Read disclosures carefully before applying.</li>
         </ul>
 
-        <!-- AD-7: In-Article Native #4 (Test Mode) -->
-        <div class="ad-container ad-in-article">
-            <p>Advertisement</p>
-            <ins class="adsbygoogle"
-                 style="display:block; min-height:250px; text-align:center; background:#f0f0f0;"
-                 data-ad-layout="in-article"
-                 data-ad-format="fluid"
-                 data-ad-client="ca-pub-0000000000000000"
-                 data-ad-slot="7777777777"
-                 data-adtest="on"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- AD-7: In-Article Native (Clickable) -->
+        <div class="ad-container" style="margin: 40px 0;">
+            <p style="font-size: 10px; color: #999; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px;">Sponsored</p>
+            <a href="#" onclick="return trackAdClick('ad-7', 'native', 'after-section-4', 'https://example-balance-transfer.com', event)"
+               style="display:flex; gap:20px; background:#fff; border:1px solid #e0e0e0; padding:20px; border-radius:8px; text-decoration:none; color:#333; flex-wrap:wrap;">
+                <div style="width:140px; height:90px; background:linear-gradient(45deg,#f77f00,#fcbf49); border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px; flex-shrink:0;">🔄</div>
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:11px; color:#f77f00; font-weight:600; margin-bottom:5px; letter-spacing:1px;">BALANCE TRANSFER</div>
+                    <h4 style="margin:0 0 8px 0; font-size:18px; color:#1a1a1a; font-family:inherit;">0% APR for 21 Months on Balance Transfers</h4>
+                    <p style="margin:0 0 8px 0; color:#666; font-size:14px;">Save thousands in interest. Pay off credit card debt faster with our top-rated card.</p>
+                    <span style="color:#0066cc; font-size:13px; font-weight:600;">example-balance-transfer.com →</span>
+                </div>
+            </a>
         </div>
 
         <div class="key-takeaway">
@@ -317,19 +357,19 @@
           <p>The best beginner credit card is rarely the one with the flashiest rewards. It&rsquo;s the one with no annual fee, full bureau reporting, a reputable issuer, and terms you can understand without a finance degree.</p>
         </div>
 
-        <!-- AD-9: In-Article Native #5 (Test Mode) -->
-        <div class="ad-container ad-in-article">
-            <p>Advertisement</p>
-            <ins class="adsbygoogle"
-                 style="display:block; min-height:250px; text-align:center; background:#f0f0f0;"
-                 data-ad-layout="in-article"
-                 data-ad-format="fluid"
-                 data-ad-client="ca-pub-0000000000000000"
-                 data-ad-slot="9999999999"
-                 data-adtest="on"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- AD-9: In-Article Native (Clickable) -->
+        <div class="ad-container" style="margin: 40px 0;">
+            <p style="font-size: 10px; color: #999; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px;">Sponsored</p>
+            <a href="#" onclick="return trackAdClick('ad-9', 'native', 'after-takeaway', 'https://example-business-cards.com', event)"
+               style="display:flex; gap:20px; background:#fff; border:1px solid #e0e0e0; padding:20px; border-radius:8px; text-decoration:none; color:#333; flex-wrap:wrap;">
+                <div style="width:140px; height:90px; background:linear-gradient(45deg,#264653,#2a9d8f); border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px; flex-shrink:0;">💼</div>
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:11px; color:#2a9d8f; font-weight:600; margin-bottom:5px; letter-spacing:1px;">BUSINESS CARDS</div>
+                    <h4 style="margin:0 0 8px 0; font-size:18px; color:#1a1a1a; font-family:inherit;">Best Business Credit Card &mdash; $750 Welcome Bonus</h4>
+                    <p style="margin:0 0 8px 0; color:#666; font-size:14px;">Perfect for small business owners. Earn unlimited 2X miles on every purchase.</p>
+                    <span style="color:#0066cc; font-size:13px; font-weight:600;">example-business-cards.com →</span>
+                </div>
+            </a>
         </div>
 
         <h2>How to Use Your First Card Responsibly</h2>
@@ -342,18 +382,22 @@
 
         <p><strong>Don&rsquo;t chase rewards at the expense of habits.</strong> The temptation with any rewards card is to spend more to earn more. For a first card, ignore that impulse. Treat your credit card as a debit card with a built-in time delay &mdash; charge only what you would have paid for in cash, then settle in full when the bill arrives.</p>
 
-        <!-- AD-8: Outstream Video Bottom (Test Mode) -->
-        <div class="ad-container ad-video-bottom">
-            <p>Advertisement</p>
-            <ins class="adsbygoogle"
-                 style="display:block; min-height:280px; background:#f0f0f0;"
-                 data-ad-client="ca-pub-0000000000000000"
-                 data-ad-slot="8888888888"
-                 data-ad-format="video"
-                 data-adtest="on"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- AD-8: Video-Style Bottom (Clickable) -->
+        <div class="ad-container" style="margin: 40px 0;">
+            <p style="font-size: 10px; color: #999; text-align: center; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px;">Advertisement</p>
+            <a href="#" onclick="return trackAdClick('ad-8', 'video', 'bottom', 'https://example-debt-relief.com', event)"
+               style="display:block; background:linear-gradient(135deg, #0f3460, #16213e); border-radius:12px; padding:30px; text-decoration:none; color:#fff; position:relative;">
+                <div style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:4px; font-size:11px;">▶ Sponsored Video</div>
+                <div style="display:flex; align-items:center; gap:25px; flex-wrap:wrap;">
+                    <div style="width:120px; height:120px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:48px; flex-shrink:0;">🆘</div>
+                    <div style="flex:1; min-width:200px;">
+                        <div style="font-size:11px; color:#e0aaff; margin-bottom:5px; letter-spacing:1px;">DEBT RELIEF EXPERTS</div>
+                        <h3 style="margin:0 0 8px 0; font-size:22px; color:#fff; font-family:inherit;">Have $10,000+ in Credit Card Debt? Watch This.</h3>
+                        <p style="margin:0 0 15px 0; color:#ccc; font-size:14px;">Learn the legal program that helps Americans eliminate up to 50% of unsecured debt.</p>
+                        <span style="display:inline-block; background:#c9184a; color:#fff; padding:12px 24px; border-radius:6px; font-weight:600;">▶ Watch Free Video</span>
+                    </div>
+                </div>
+            </a>
         </div>
 
         <h2>Building Toward Your Next Card</h2>
@@ -389,18 +433,40 @@
           <p>It&rsquo;s generally not advisable. Each application triggers a hard credit inquiry, which can lower your score slightly. For your first card, apply for one card you have a reasonable chance of being approved for, and wait at least six months before applying for additional cards.</p>
         </div>
 
-        <!-- AD-10: Multiplex Grid (Test Mode) -->
-        <div class="ad-container ad-multiplex">
-            <p>More Articles</p>
-            <ins class="adsbygoogle"
-                 style="display:block; min-height:600px; background:#f0f0f0;"
-                 data-ad-format="autorelaxed"
-                 data-ad-client="ca-pub-0000000000000000"
-                 data-ad-slot="1010101010"
-                 data-adtest="on"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- AD-10: Multiplex Grid (4 Clickable Mini Ads) -->
+        <div class="ad-container ad-multiplex-grid" style="margin: 50px 0; background:#f8f9fa; padding:25px; border-radius:12px;">
+            <p style="font-size: 11px; color: #888; text-align:center; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">You May Also Like &mdash; Sponsored</p>
+            <div class="multiplex-row" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:15px;">
+
+                <a href="#" onclick="return trackAdClick('ad-10-a', 'multiplex', 'grid-1', 'https://example-secured-card.com', event)"
+                   style="background:#fff; padding:15px; border-radius:8px; text-decoration:none; color:#333; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:block;">
+                    <div style="width:100%; height:80px; background:linear-gradient(135deg,#4361ee,#3a0ca3); border-radius:6px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:32px;">🔒</div>
+                    <div style="font-size:11px; color:#4361ee; font-weight:600; letter-spacing:1px;">SECURED CARD</div>
+                    <div style="font-size:13px; font-weight:600; margin-top:4px; color:#1a1a1a;">Build Credit From Scratch</div>
+                </a>
+
+                <a href="#" onclick="return trackAdClick('ad-10-b', 'multiplex', 'grid-2', 'https://example-student-card.com', event)"
+                   style="background:#fff; padding:15px; border-radius:8px; text-decoration:none; color:#333; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:block;">
+                    <div style="width:100%; height:80px; background:linear-gradient(135deg,#06ffa5,#00b377); border-radius:6px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:32px;">🎓</div>
+                    <div style="font-size:11px; color:#00b377; font-weight:600; letter-spacing:1px;">STUDENT CARD</div>
+                    <div style="font-size:13px; font-weight:600; margin-top:4px; color:#1a1a1a;">Best Card for College</div>
+                </a>
+
+                <a href="#" onclick="return trackAdClick('ad-10-c', 'multiplex', 'grid-3', 'https://example-luxury-card.com', event)"
+                   style="background:#fff; padding:15px; border-radius:8px; text-decoration:none; color:#333; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:block;">
+                    <div style="width:100%; height:80px; background:linear-gradient(135deg,#000000,#434343); border-radius:6px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:#ffd700; font-size:32px;">⭐</div>
+                    <div style="font-size:11px; color:#000; font-weight:600; letter-spacing:1px;">PREMIUM CARD</div>
+                    <div style="font-size:13px; font-weight:600; margin-top:4px; color:#1a1a1a;">Luxury Travel Benefits</div>
+                </a>
+
+                <a href="#" onclick="return trackAdClick('ad-10-d', 'multiplex', 'grid-4', 'https://example-no-fee-card.com', event)"
+                   style="background:#fff; padding:15px; border-radius:8px; text-decoration:none; color:#333; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:block;">
+                    <div style="width:100%; height:80px; background:linear-gradient(135deg,#ff006e,#fb5607); border-radius:6px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:32px;">🆓</div>
+                    <div style="font-size:11px; color:#ff006e; font-weight:600; letter-spacing:1px;">NO ANNUAL FEE</div>
+                    <div style="font-size:13px; font-weight:600; margin-top:4px; color:#1a1a1a;">$0 Forever</div>
+                </a>
+
+            </div>
         </div>
 
         <h2>Conclusion</h2>
@@ -510,19 +576,21 @@
 
   <script src="../assets/js/main.js" defer></script>
 
-  <!-- AD-1: Anchor Sticky Bottom (Test Mode) -->
-  <div id="anchor-ad-container">
-    <button id="anchor-ad-close" aria-label="Close ad" onclick="document.getElementById('anchor-ad-container').style.display='none'; document.body.classList.remove('anchor-ad-active');">&times;</button>
-    <p class="anchor-ad-label">Advertisement</p>
-    <ins class="adsbygoogle anchor-ad-unit"
-         data-ad-client="ca-pub-0000000000000000"
-         data-ad-slot="1111111111"
-         data-adtest="on"></ins>
-    <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
-         document.body.classList.add('anchor-ad-active');
-    </script>
+  <!-- AD-1: Anchor Sticky Bottom (Clickable) -->
+  <div id="anchor-ad" style="position:fixed; bottom:0; left:0; right:0; z-index:9999; background:#fff; border-top:2px solid #0066cc; padding:8px 12px; box-shadow:0 -2px 15px rgba(0,0,0,0.15); box-sizing:border-box;">
+    <button onclick="document.getElementById('anchor-ad').style.display='none'; document.body.classList.remove('anchor-ad-active');" aria-label="Close ad" style="position:absolute; top:4px; right:8px; background:transparent; border:none; font-size:22px; cursor:pointer; color:#666; z-index:10; padding:2px 8px; line-height:1;">&times;</button>
+    <p style="font-size:9px; color:#888; margin:0 0 4px 0; text-transform:uppercase; letter-spacing:1px; padding-left:60px;">Ad</p>
+    <a href="#" onclick="return trackAdClick('ad-1', 'anchor', 'bottom', 'https://example-bank-offers.com', event)"
+       style="display:flex; align-items:center; gap:12px; max-width:600px; margin:0 auto; text-decoration:none; color:#333;">
+        <div style="width:48px; height:48px; background:linear-gradient(135deg,#0066cc,#004499); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:22px; font-weight:bold; flex-shrink:0;">💳</div>
+        <div style="flex:1; min-width:0;">
+            <div style="font-weight:600; font-size:14px; color:#1a1a1a; line-height:1.3;">Get $200 Bonus on Your First Credit Card</div>
+            <div style="font-size:11px; color:#666; line-height:1.3;">Apply in 60 seconds. No annual fee. example-bank-offers.com</div>
+        </div>
+        <span style="background:#0066cc; color:#fff; padding:8px 16px; border-radius:6px; font-weight:600; font-size:13px; flex-shrink:0;">Apply</span>
+    </a>
   </div>
+  <script>document.body.classList.add('anchor-ad-active');</script>
 
 </body>
 </html>
