@@ -154,6 +154,17 @@ function duration(int $s): string {
     if ($s < 3600) return floor($s / 60) . 'm ' . ($s % 60) . 's';
     return floor($s / 3600) . 'h ' . floor(($s % 3600) / 60) . 'm';
 }
+// Convert MySQL DATETIME (assumed UTC) -> PKT info: ['ts' => unix, 'pkt' => formatted PKT]
+function pktTime(?string $mysqlDt): array {
+    if (!$mysqlDt) return ['ts' => 0, 'pkt' => '—'];
+    try {
+        $dt = new DateTime($mysqlDt, new DateTimeZone('UTC'));
+        $dt->setTimezone(new DateTimeZone('Asia/Karachi'));
+        return ['ts' => $dt->getTimestamp(), 'pkt' => $dt->format('M j, H:i') . ' PKT'];
+    } catch (Exception $e) {
+        return ['ts' => 0, 'pkt' => $mysqlDt];
+    }
+}
 
 ?><!DOCTYPE html>
 <html lang="en">
@@ -301,7 +312,8 @@ function duration(int $s): string {
       ?>
         <tr class="<?= h($riskClass) ?>">
           <td class="col-check"><input type="checkbox" class="row-check" data-id="<?= (int)$r['id'] ?>"></td>
-          <td class="nowrap"><?= h(date('M j, H:i', strtotime($r['visit_time']))) ?></td>
+          <?php $tInfo = pktTime($r['visit_time']); ?>
+          <td class="nowrap"><time data-ts="<?= (int)$tInfo['ts'] ?>" title="<?= h($tInfo['pkt']) ?>"><?= h($tInfo['pkt']) ?></time></td>
           <td>
             <div class="mono"><?= h($r['ip_address']) ?></div>
             <div class="muted">
@@ -368,6 +380,33 @@ function duration(int $s): string {
 </footer>
 
 <script>
+// ---------- Relative time (auto-refreshing every 30s) ----------
+(function() {
+  function relTime(ts) {
+    var diff = Math.floor(Date.now() / 1000) - ts;
+    if (diff < 5)        return 'just now';
+    if (diff < 60)       return diff + 's ago';
+    var m = Math.floor(diff / 60);
+    if (m < 60)          return m + (m === 1 ? ' min ago' : ' mins ago');
+    var h = Math.floor(m / 60);
+    if (h < 24)          return h + (h === 1 ? ' hr ago' : ' hrs ago');
+    var d = Math.floor(h / 24);
+    if (d < 7)           return d + (d === 1 ? ' day ago' : ' days ago');
+    if (d < 30)          return Math.floor(d/7) + 'w ago';
+    return null;
+  }
+  function refreshTimes() {
+    document.querySelectorAll('time[data-ts]').forEach(function(el) {
+      var ts = parseInt(el.dataset.ts, 10);
+      if (!ts) return;
+      var rel = relTime(ts);
+      if (rel) el.textContent = rel;
+    });
+  }
+  refreshTimes();
+  setInterval(refreshTimes, 30000);
+})();
+
 (function() {
   'use strict';
   var selectAll  = document.getElementById('select-all-checkbox');

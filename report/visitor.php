@@ -79,6 +79,17 @@ function flagEmoji(?string $cc): string {
     $cc = strtoupper($cc);
     return mb_chr(0x1F1E6 + (ord($cc[0]) - 65)) . mb_chr(0x1F1E6 + (ord($cc[1]) - 65));
 }
+// Convert MySQL DATETIME (assumed UTC) -> PKT info
+function pktTime(?string $mysqlDt): array {
+    if (!$mysqlDt) return ['ts' => 0, 'pkt' => '—'];
+    try {
+        $dt = new DateTime($mysqlDt, new DateTimeZone('UTC'));
+        $dt->setTimezone(new DateTimeZone('Asia/Karachi'));
+        return ['ts' => $dt->getTimestamp(), 'pkt' => $dt->format('M j, Y H:i:s') . ' PKT'];
+    } catch (Exception $e) {
+        return ['ts' => 0, 'pkt' => $mysqlDt];
+    }
+}
 function ynBadge($v): RawHtml {
     return raw($v ? '<span class="yn yes">YES</span>' : '<span class="yn no">no</span>');
 }
@@ -149,7 +160,12 @@ function flagExplanation(string $f): string {
   <section class="visitor-header risk-<?= h($v['risk_level']) ?>">
     <div>
       <h1>Visitor #<?= (int)$v['id'] ?></h1>
-      <p class="muted">First seen: <?= h($v['visit_time']) ?> · Last seen: <?= h($v['last_seen']) ?></p>
+      <?php $first = pktTime($v['visit_time']); $last = pktTime($v['last_seen']); ?>
+      <p class="muted">
+        First seen: <time data-ts="<?= (int)$first['ts'] ?>" title="<?= h($first['pkt']) ?>"><?= h($first['pkt']) ?></time>
+        &nbsp;·&nbsp;
+        Last seen: <time data-ts="<?= (int)$last['ts'] ?>" title="<?= h($last['pkt']) ?>"><?= h($last['pkt']) ?></time>
+      </p>
       <p class="mono small"><?= h($v['visitor_id']) ?></p>
     </div>
     <div class="risk-display">
@@ -427,6 +443,33 @@ function flagExplanation(string $f): string {
 </footer>
 
 <script>
+// ---------- Relative time (auto-refreshing every 30s) ----------
+(function() {
+  function relTime(ts) {
+    var diff = Math.floor(Date.now() / 1000) - ts;
+    if (diff < 5)        return 'just now';
+    if (diff < 60)       return diff + 's ago';
+    var m = Math.floor(diff / 60);
+    if (m < 60)          return m + (m === 1 ? ' min ago' : ' mins ago');
+    var h = Math.floor(m / 60);
+    if (h < 24)          return h + (h === 1 ? ' hr ago' : ' hrs ago');
+    var d = Math.floor(h / 24);
+    if (d < 7)           return d + (d === 1 ? ' day ago' : ' days ago');
+    if (d < 30)          return Math.floor(d/7) + 'w ago';
+    return null;
+  }
+  function refreshTimes() {
+    document.querySelectorAll('time[data-ts]').forEach(function(el) {
+      var ts = parseInt(el.dataset.ts, 10);
+      if (!ts) return;
+      var rel = relTime(ts);
+      if (rel) el.textContent = rel;
+    });
+  }
+  refreshTimes();
+  setInterval(refreshTimes, 30000);
+})();
+
 (function() {
   var btn = document.getElementById('btn-copy-full');
   var toastWrap = document.getElementById('toast-container');

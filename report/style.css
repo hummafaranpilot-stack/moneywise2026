@@ -1,5 +1,5 @@
 /* ============================================================================
-   Money Wise 2026 Ã¢â‚¬â€ Tracker Dashboard Styling
+   Money Wise 2026 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Tracker Dashboard Styling
    ============================================================================ */
 
 :root {
@@ -277,7 +277,7 @@ details summary { cursor: pointer; color: var(--accent-2); padding: 8px 0; font-
 
 
 /* ============================================================================
-   Tracker Dashboard v2 â€” Bulk Actions, Toast, Checkboxes
+   Tracker Dashboard v2 Ã¢â‚¬â€ Bulk Actions, Toast, Checkboxes
    ============================================================================ */
 
 .bulk-actions-bar {
@@ -404,7 +404,7 @@ details summary { cursor: pointer; color: var(--accent-2); padding: 8px 0; font-
 }
 
 /* ============================================================================
-   Button Design Upgrade — Polished, modern, with depth and motion
+   Button Design Upgrade â€” Polished, modern, with depth and motion
    ============================================================================ */
 
 /* ===== Reset / base button feel ===== */
@@ -467,7 +467,7 @@ details summary { cursor: pointer; color: var(--accent-2); padding: 8px 0; font-
         0 1px 2px rgba(0,0,0,0.3);
 }
 
-/* Primary action (Copy Selected) — green gradient */
+/* Primary action (Copy Selected) â€” green gradient */
 .action-btn.primary {
     background: linear-gradient(180deg, #00a76e 0%, #00875a 100%);
     border-color: #00a76e;
@@ -539,7 +539,7 @@ details summary { cursor: pointer; color: var(--accent-2); padding: 8px 0; font-
     transform: translateY(0);
 }
 
-/* ===== Filters bar — Apply button ===== */
+/* ===== Filters bar â€” Apply button ===== */
 .filters button {
     background: linear-gradient(180deg, #00a76e 0%, #00875a 100%);
     color: #ffffff;
@@ -639,4 +639,173 @@ details summary { cursor: pointer; color: var(--accent-2); padding: 8px 0; font-
     .btn-mini   { padding: 4px 10px; font-size: 10px; }
     .filters button { padding: 8px 16px; font-size: 11px; }
     .btn-secondary  { padding: 6px 14px; font-size: 11px; }
+}
+
+/* ============================================================================
+   Bulk Actions Bar + Action Buttons + Toast Notifications
+   ============================================================================ */
+
+.bulk-actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+}
+
+.action-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    margin-right: 6px;
+    padding-right: 12px;
+    border-right: 1px solid var(--border);
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: linear-gradient(180deg, #2a3340, #1f2731);
+    color: var(--text);
+    border: 1px solid #3a4555;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    font-family: inherit;
+    line-height: 1.2;
+    white-space: nowrap;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+}
+.action-btn:hover:not(:disabled)::before { transform: translateX(100%); }
+
+.action-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #34404f, #242c38);
+    border-color: var(--accent-2);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 4px 12px rgba(0, 214, 143, 0.25);
+    text-decoration: none;
+}
+
+.action-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.action-btn.primary {
+    background: linear-gradient(180deg, #00b377, #006a47);
+    color: #fff;
+    border-color: #00d68f;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 2px 6px rgba(0, 214, 143, 0.4);
+}
+
+.action-btn.primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #00d68f, #00875a);
+    color: #fff;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 16px rgba(0, 214, 143, 0.5);
+}
+
+.action-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    color: var(--text-dim);
+    background: linear-gradient(180deg, #232a35, #1a2028);
+    border-color: var(--border);
+    box-shadow: none;
+}
+
+.action-btn:focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 2px;
+}
+
+#selected-count {
+    background: rgba(255, 255, 255, 0.22);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    margin-left: 4px;
+    font-weight: 700;
+}
+
+/* ============ Checkbox styling ============ */
+.col-check { width: 36px; text-align: center; }
+.col-check input[type="checkbox"] {
+    width: 15px; height: 15px;
+    cursor: pointer;
+    accent-color: var(--accent-2);
+}
+
+/* ============ Time element ============ */
+time[data-ts] {
+    cursor: help;
+    border-bottom: 1px dotted transparent;
+    transition: border-color 0.15s;
+}
+time[data-ts]:hover {
+    border-bottom-color: var(--text-dim);
+}
+
+/* ============ Toast notifications ============ */
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    min-width: 240px;
+    max-width: 380px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto;
+}
+
+.toast.show { transform: translateX(0); opacity: 1; }
+.toast-info    { background: linear-gradient(135deg, #1f6feb, #58a6ff); }
+.toast-success { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.toast-error   { background: linear-gradient(135deg, #c9302c, var(--red)); }
+
+@media (max-width: 600px) {
+    .bulk-actions-bar { padding: 10px 12px; gap: 8px; }
+    .action-label { padding-right: 8px; margin-right: 0; }
+    .action-btn { font-size: 11px; padding: 7px 10px; }
+    #toast-container { left: 16px; right: 16px; bottom: 16px; }
+    .toast { max-width: 100%; }
 }
