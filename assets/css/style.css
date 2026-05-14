@@ -48,6 +48,8 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
@@ -64,6 +66,9 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
 }
 
 img {
@@ -1395,7 +1400,22 @@ main {
    Ad Container Styling (AdSense Test Ads) — Mobile-first responsive
    ============================================================================ */
 
+/* Hard containment: prevent any AdSense iframe from forcing horizontal overflow */
+.ad-container,
+.ad-container *,
+ins.adsbygoogle,
+ins.adsbygoogle iframe,
+ins.adsbygoogle > * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+ins.adsbygoogle iframe {
+    width: 100% !important;
+}
+
 .ad-container {
+    width: 100%;
     max-width: 100%;
     margin: 32px auto;
     overflow: hidden;
