@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Money Wise 2026 Ã¢â‚¬â€ Editorial Finance Publication Stylesheet
+   Money Wise 2026 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Editorial Finance Publication Stylesheet
    ========================================================================== */
 
 /* ---------- CSS Custom Properties ---------- */
@@ -1209,7 +1209,7 @@ main {
 /* ---------- Ad Placeholder Spots ---------- */
 .ad-placeholder {
   display: none;
-  /* AdSense placeholders Ã¢â‚¬â€ uncomment & populate when approved */
+  /* AdSense placeholders ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â uncomment & populate when approved */
 }
 
 /* ---------- 404 Page ---------- */
@@ -1397,7 +1397,7 @@ main {
 
 
 /* ============================================================================
-   Ad Container Styling (AdSense Test Ads) â€” Mobile-first responsive
+   Ad Container Styling (AdSense Test Ads) Ã¢â‚¬â€ Mobile-first responsive
    ============================================================================ */
 
 /* Hard containment: prevent any AdSense iframe from forcing horizontal overflow */
@@ -1610,7 +1610,7 @@ body.anchor-ad-active {
 
 /* ===== Mobile: stack ads vertically, reduce sizes ===== */
 @media (max-width: 600px) {
-    /* Native + video ad inner flex containers — stack vertically */
+    /* Native + video ad inner flex containers â€” stack vertically */
     .ad-container > a > div[style*="display:flex"] {
         flex-direction: column !important;
         text-align: center !important;
@@ -1649,7 +1649,7 @@ body.anchor-ad-active {
         gap: 10px !important;
     }
 
-    /* Anchor ad — compact on mobile */
+    /* Anchor ad â€” compact on mobile */
     #anchor-ad {
         padding: 6px 8px !important;
     }
@@ -1683,4 +1683,132 @@ body.anchor-ad-active {
     }
     .ad-container h3 { font-size: 16px !important; }
     .ad-container h4 { font-size: 15px !important; }
+}
+
+/* ============================================================================
+   MOBILE OVERFLOW FIX (final, comprehensive)
+   Fixes: horizontal scroll, content cut off at viewport edge, header hamburger
+          partially visible, text reaching screen edge
+   ============================================================================ */
+
+/* Lock viewport width hard */
+html, body {
+    overflow-x: hidden !important;
+    overflow-x: clip !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+}
+
+/* Ensure no element causes overflow via fixed/large widths */
+html *, body * {
+    max-width: 100%;
+}
+
+/* Top-level containers must respect viewport */
+.site-header, .nav-wrapper, main, article, .breadcrumbs, .article-hero,
+.article-featured-image, .article-content, .related-articles, .container,
+.site-footer, .footer-grid {
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+/* Articles + ads — strict containment */
+.article-content, .ad-container, .ad-container > a,
+.ad-container > div, .ad-container > a > div,
+.ad-multiplex-grid, .ad-multiplex-grid > div {
+    max-width: 100% !important;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+/* Long URLs / words break instead of overflowing */
+p, h1, h2, h3, h4, h5, h6, li, span, a {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+/* Tables — only article comparison tables (NOT layout grids) need scroll */
+.comparison-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Images, iframes, videos */
+img, iframe, video, embed, object {
+    max-width: 100% !important;
+    height: auto;
+}
+
+/* ===== Mobile-specific layout tweaks ===== */
+@media (max-width: 600px) {
+    .article-content {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        font-size: 1rem !important;
+    }
+
+    .breadcrumbs {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .nav-wrapper {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .article-hero {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    /* Reduce ad inline padding so they fit */
+    .ad-container > a[style*="padding:30px"] {
+        padding: 20px 14px !important;
+    }
+    .ad-container > a[style*="padding:20px"] {
+        padding: 16px 12px !important;
+    }
+    .ad-multiplex-grid {
+        padding: 18px 12px !important;
+    }
+
+    /* Remove min-width that forces overflow on flex children inside ads */
+    .ad-container > a > div[style*="display:flex"] > div[style*="min-width:200px"],
+    .ad-container > a[style*="display:flex"] > div[style*="min-width:200px"] {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Reduce video-ad icon block size on mobile */
+    .ad-container > a > div[style*="display:flex"] > div[style*="width:120px"] {
+        width: 80px !important;
+        height: 80px !important;
+        font-size: 36px !important;
+    }
+
+    /* Native ad icon block on mobile */
+    .ad-container > a[style*="display:flex"] > div[style*="width:140px"] {
+        width: 100% !important;
+        max-width: 200px !important;
+        height: 80px !important;
+        font-size: 32px !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .article-content,
+    .breadcrumbs,
+    .nav-wrapper,
+    .article-hero {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    .article-title { font-size: 1.625rem !important; }
+    .article-content h2 { font-size: 1.375rem !important; }
+    .article-content h3 { font-size: 1.125rem !important; }
 }
