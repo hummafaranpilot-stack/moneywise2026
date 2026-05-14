@@ -1,5 +1,5 @@
 /* ============================================================================
-   Money Wise 2026 — Tracker Dashboard Styling
+   Money Wise 2026 â€” Tracker Dashboard Styling
    ============================================================================ */
 
 :root {
@@ -273,4 +273,132 @@ details summary { cursor: pointer; color: var(--accent-2); padding: 8px 0; font-
   .visitors-table th, .visitors-table td { padding: 6px 8px; }
   .visitor-header { flex-direction: column; align-items: flex-start; }
   .kv th { width: 140px; font-size: 11px; }
+}
+
+
+/* ============================================================================
+   Tracker Dashboard v2 — Bulk Actions, Toast, Checkboxes
+   ============================================================================ */
+
+.bulk-actions-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bulk-actions-bar .action-label {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-right: 6px;
+}
+
+.action-btn {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    display: inline-block;
+    font-family: inherit;
+}
+
+.action-btn:hover:not(:disabled) {
+    background: var(--bg);
+    border-color: var(--accent-2);
+    color: var(--accent-2);
+    text-decoration: none;
+}
+
+.action-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.action-btn.primary:hover:not(:disabled) {
+    background: var(--accent-2);
+    border-color: var(--accent-2);
+    color: #fff;
+}
+
+.action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Checkbox column */
+.col-check {
+    width: 36px;
+    text-align: center;
+    padding: 8px 4px !important;
+}
+
+#select-all-checkbox,
+.row-check {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--accent-2);
+}
+
+/* Toast notifications */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.toast {
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 13px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    transform: translateX(450px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 380px;
+    pointer-events: auto;
+    font-weight: 500;
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-info    { background: #2196F3; }
+.toast-success { background: var(--accent); }
+.toast-error   { background: var(--red); }
+
+/* Mobile dashboard tweaks */
+@media (max-width: 768px) {
+    .bulk-actions-bar { padding: 10px 12px; gap: 6px; }
+    .action-btn { padding: 6px 10px; font-size: 11px; }
+    .visitors-table { font-size: 11px; }
+    .visitors-table th { font-size: 9px; padding: 6px 4px; }
+    .visitors-table td { padding: 6px 4px; }
+    .col-check { width: 28px; }
+    #toast-container { right: 8px; left: 8px; bottom: 8px; }
+    .toast { max-width: 100%; transform: translateY(100px); }
+    .toast.show { transform: translateY(0); }
 }

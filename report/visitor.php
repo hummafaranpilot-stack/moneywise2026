@@ -2,8 +2,8 @@
 declare(strict_types=1);
 /**
  * ============================================================================
- * Money Wise 2026 — Visitor Detail Page
- * 10-stage analysis + raw JSON for a single visitor.
+ * Money Wise 2026 — Visitor Detail Page v2
+ * 10-stage analysis with all 150+ tracker fields + copy-JSON button.
  * ============================================================================
  */
 
@@ -16,11 +16,17 @@ require_once __DIR__ . '/../api/config.php';
 require_once __DIR__ . '/../api/db.php';
 
 session_name(SESSION_NAME);
+session_set_cookie_params([
+    'lifetime' => SESSION_LIFETIME,
+    'path'     => '/',
+    'domain'   => '',
+    'secure'   => !empty($_SERVER['HTTPS']),
+    'httponly' => true,
+    'samesite' => 'Strict',
+]);
 session_start();
-if (empty($_SESSION['mw_auth'])) {
-    header('Location: login.php');
-    exit;
-}
+if (empty($_SESSION['mw_auth'])) { header('Location: login.php'); exit; }
+if (isset($_GET['logout'])) { $_SESSION = []; session_destroy(); header('Location: login.php'); exit; }
 
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) { header('Location: index.php'); exit; }
@@ -30,48 +36,68 @@ $stmt->execute([$id]);
 $v = $stmt->fetch();
 if (!$v) { http_response_code(404); echo 'Visitor not found.'; exit; }
 
-$flags = $v['risk_flags'] ? (json_decode($v['risk_flags'], true) ?: []) : [];
-$languages = $v['languages'] ? (json_decode($v['languages'], true) ?: []) : [];
-$fonts = $v['fonts_list'] ? (json_decode($v['fonts_list'], true) ?: []) : [];
-$fullData = $v['full_data'] ? json_decode($v['full_data'], true) : [];
+// ---------------- Decode JSON columns ----------------
+function jget($v, $k, $default = []) {
+    if (empty($v[$k])) return $default;
+    if (is_string($v[$k])) {
+        $d = json_decode($v[$k], true);
+        return $d !== null ? $d : $default;
+    }
+    return is_array($v[$k]) ? $v[$k] : $default;
+}
+$flags          = jget($v, 'risk_flags', []);
+$languages      = jget($v, 'languages', []);
+$fontsList      = jget($v, 'fonts_list', jget($v, 'fonts_detected', []));
+$pluginsList    = jget($v, 'plugins_list', []);
+$mimeList       = jget($v, 'mime_types_list', []);
+$webglExt       = jget($v, 'webgl_extensions', []);
+$lsKeys         = jget($v, 'localstorage_keys', []);
+$ssKeys         = jget($v, 'sessionstorage_keys', []);
+$permissions    = jget($v, 'permissions_state', []);
+$speechVoices   = jget($v, 'speech_voices_list', []);
+$mediaDevices   = jget($v, 'media_devices_list', []);
+$webrtcIPs      = jget($v, 'webrtc_ips', []);
+$codecSupport   = jget($v, 'codec_support', []);
+$featureSupport = jget($v, 'feature_support', []);
+$behaviorFull   = jget($v, 'behavior_full_data', []);
+$fullData       = jget($v, 'full_data', []);
 
+// ---------------- Helpers ----------------
 function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function flagEmoji(?string $cc): string {
     if (!$cc || strlen($cc) !== 2) return '🌐';
     $cc = strtoupper($cc);
     return mb_chr(0x1F1E6 + (ord($cc[0]) - 65)) . mb_chr(0x1F1E6 + (ord($cc[1]) - 65));
 }
-function ynBadge($v): string {
-    return $v ? '<span class="yn yes">YES</span>' : '<span class="yn no">no</span>';
-}
+function ynBadge($v): string { return $v ? '<span class="yn yes">YES</span>' : '<span class="yn no">no</span>'; }
 function row(string $label, $value, bool $mono = false) {
     if ($value === null || $value === '') $value = '—';
-    $cls = $mono ? 'mono' : '';
-    echo '<tr><th>' . h($label) . '</th><td class="' . $cls . '">' . (is_string($value) ? h($value) : $value) . '</td></tr>';
+    echo '<tr><th>' . h($label) . '</th><td' . ($mono ? ' class="mono"' : '') . '>' . (is_string($value) ? h($value) : $value) . '</td></tr>';
 }
 function flagExplanation(string $f): string {
     $map = [
-        'proxy_detected'      => 'IP identified as proxy via proxycheck.io',
-        'vpn_detected'        => 'IP identified as VPN service',
-        'tor_detected'        => 'IP is a Tor exit node',
+        'proxy_detected'      => 'Proxy detected via proxycheck.io',
+        'vpn_detected'        => 'IP identified as VPN',
+        'tor_detected'        => 'Tor exit node',
         'public_proxy'        => 'Public/compromised proxy',
-        'datacenter_ip'       => 'IP is from a datacenter (AWS/GCP/Azure/etc.)',
-        'datacenter_org'      => 'ISP organization name suggests datacenter',
-        'high_ip_risk'        => 'proxycheck.io risk score > 50',
-        'no_cookies'          => 'Browser cookies are disabled',
-        'no_local_storage'    => 'localStorage disabled (rare in real users)',
-        'incognito_mode'      => 'Private/incognito browsing detected',
+        'datacenter_ip'       => 'Datacenter / hosting IP',
+        'datacenter_org'      => 'ISP organization is hosting/cloud',
+        'high_ip_risk'        => 'proxycheck.io risk > 50',
+        'no_cookies'          => 'Cookies disabled',
+        'no_languages'        => 'No browser languages reported',
+        'incognito_mode'      => 'Private/incognito browsing',
         'webdriver_detected'  => 'navigator.webdriver === true (automation)',
-        'bot_signal'          => 'Bot indicators present in environment',
-        'bot_user_agent'      => 'User-Agent matches known bot patterns',
-        'missing_webgl'       => 'No WebGL renderer (headless or stripped)',
-        'missing_canvas'      => 'Canvas fingerprint blocked or empty',
-        'low_font_count'      => 'Very few fonts detected (uncommon for real users)',
-        'missing_cpu_info'    => 'hardwareConcurrency missing',
-        'no_mouse_movement'   => 'Long session with no mouse activity',
-        'too_short_session'   => 'Session under 3 seconds with no interaction',
-        'no_scroll'           => 'Long session with no scrolling',
-        'click_flood'         => 'Many clicks in a very short window',
+        'bot_user_agent'      => 'UA matches bot patterns',
+        'low_cpu_cores'       => 'Hardware concurrency < 2',
+        'no_device_memory'    => 'navigator.deviceMemory missing',
+        'no_webgl'            => 'WebGL not available',
+        'no_canvas'           => 'Canvas blocked',
+        'no_audio_api'        => 'AudioContext not available',
+        'low_font_count'      => 'Few fonts detected',
+        'no_mouse_movement'   => 'Long session, no mouse activity',
+        'too_short_session'   => 'Session under 5 seconds',
+        'no_scroll'           => 'Long session, no scrolling',
+        'click_flood'         => 'Many clicks in short window',
     ];
     return $map[$f] ?? 'Heuristic risk indicator';
 }
@@ -100,7 +126,7 @@ function flagExplanation(string $f): string {
 
 <main class="dash-main">
 
-  <!-- ============ Visitor Header Card ============ -->
+  <!-- ============ Header card + Copy JSON ============ -->
   <section class="visitor-header risk-<?= h($v['risk_level']) ?>">
     <div>
       <h1>Visitor #<?= (int)$v['id'] ?></h1>
@@ -110,8 +136,11 @@ function flagExplanation(string $f): string {
     <div class="risk-display">
       <div class="risk-score-big"><?= (int)$v['risk_score'] ?></div>
       <div class="risk-pill risk-pill-<?= h($v['risk_level']) ?>"><?= h(strtoupper((string)$v['risk_level'])) ?></div>
+      <button id="btn-copy-full" class="action-btn primary" style="margin-top:10px;">📋 Copy Full JSON</button>
     </div>
   </section>
+
+  <div id="toast-container"></div>
 
   <!-- ============ Risk Flags ============ -->
   <?php if (!empty($flags)): ?>
@@ -125,7 +154,7 @@ function flagExplanation(string $f): string {
   </section>
   <?php endif; ?>
 
-  <!-- ============ Stage 1: IP Address ============ -->
+  <!-- ============ Stage 1: IP + Network ============ -->
   <section class="card">
     <h2>🌐 Stage 1 — IP Address & Network</h2>
     <table class="kv">
@@ -134,39 +163,47 @@ function flagExplanation(string $f): string {
       row('Country', flagEmoji($v['country_code']) . ' ' . h($v['country'] ?: '—'));
       row('Region / City', trim(($v['region'] ?? '') . ' / ' . ($v['city'] ?? '')) ?: '—');
       row('Continent', $v['continent']);
-      row('ISP / Org', $v['isp']);
+      row('ISP', $v['isp']);
       row('ASN', $v['asn']);
       row('AS Name', $v['as_name']);
       row('AS Domain', $v['as_domain']);
+      row('Org', $v['org']);
       row('Is Proxy', ynBadge($v['is_proxy']));
       row('Is VPN', ynBadge($v['is_vpn']));
       row('Is Tor', ynBadge($v['is_tor']));
       row('Is Datacenter', ynBadge($v['is_datacenter']));
       row('Proxy Type', $v['proxy_type']);
-      row('Proxy Risk (0-100)', (int)$v['proxy_risk_score']);
+      row('Proxy Risk Score', (int)$v['proxy_risk_score']);
       ?>
     </table>
     <?php if (!empty($v['city']) || !empty($v['country'])): ?>
-      <p class="muted">📍 Approximate location:
-        <a target="_blank" rel="noopener"
-           href="https://www.google.com/maps?q=<?= urlencode(($v['city'] ?? '') . ', ' . ($v['country'] ?? '')) ?>">View on Google Maps ↗</a>
-      </p>
+      <p class="muted">📍 <a target="_blank" rel="noopener" href="https://www.google.com/maps?q=<?= urlencode(($v['city'] ?? '') . ', ' . ($v['country'] ?? '')) ?>">View approximate location ↗</a></p>
     <?php endif; ?>
   </section>
 
-  <!-- ============ Stage 2: Browser Fingerprint ============ -->
+  <!-- ============ Stage 2: Browser ============ -->
   <section class="card">
     <h2>🧬 Stage 2 — Browser Fingerprint</h2>
     <table class="kv">
       <?php
       row('User-Agent', $v['user_agent'], true);
-      row('Browser', $v['browser_name'] . ' ' . $v['browser_version']);
-      row('OS', $v['os_name'] . ' ' . $v['os_version']);
+      row('Browser', trim(($v['browser_name'] ?? '') . ' ' . ($v['browser_version'] ?? '')));
+      row('OS', trim(($v['os_name'] ?? '') . ' ' . ($v['os_version'] ?? '')));
       row('Device Type', $v['device_type']);
-      row('Primary Language', $v['language_primary']);
+      row('Vendor', $v['vendor']);
+      row('Product', $v['product']);
+      row('Platform', $v['platform']);
+      row('App Name', $v['app_name']);
+      row('Language (primary)', $v['language'] ?? $v['language_primary']);
       row('All Languages', is_array($languages) ? implode(', ', $languages) : '');
-      row('Timezone', $v['timezone']);
-      row('Timezone Offset (min)', $v['timezone_offset']);
+      row('Online', ynBadge($v['online']));
+      row('Cookies Enabled (navigator)', ynBadge($v['cookie_enabled']));
+      row('Do Not Track', $v['do_not_track']);
+      row('WebDriver', ynBadge($v['webdriver']));
+      row('PDF Viewer', ynBadge($v['pdf_viewer_enabled']));
+      row('Java Enabled', ynBadge($v['java_enabled']));
+      row('Is Brave', ynBadge($v['is_brave']));
+      row('Max Touch Points', (int)$v['max_touch_points']);
       ?>
     </table>
   </section>
@@ -178,13 +215,19 @@ function flagExplanation(string $f): string {
       <?php
       row('Screen', $v['screen_width'] . ' × ' . $v['screen_height']);
       row('Available Screen', $v['screen_avail_width'] . ' × ' . $v['screen_avail_height']);
+      row('Window Inner', $v['window_inner_width'] . ' × ' . $v['window_inner_height']);
+      row('Window Outer', $v['window_outer_width'] . ' × ' . $v['window_outer_height']);
       row('Color Depth', ($v['screen_color_depth'] ?: '—') . ' bit');
-      row('Pixel Ratio', $v['pixel_ratio']);
-      row('Viewport', $v['viewport_width'] . ' × ' . $v['viewport_height']);
-      row('CPU Cores', $v['cpu_cores']);
+      row('Pixel Depth', $v['screen_pixel_depth']);
+      row('Device Pixel Ratio', $v['device_pixel_ratio'] ?? $v['pixel_ratio']);
+      row('Orientation', trim(($v['screen_orientation_type'] ?? '') . ' (' . ($v['screen_orientation_angle'] ?? '') . '°)'));
+      row('Color Scheme', $v['prefers_color_scheme']);
+      row('Reduced Motion', ynBadge($v['prefers_reduced_motion']));
+      row('Color Gamut P3', ynBadge($v['color_gamut_p3']));
+      row('Color Gamut sRGB', ynBadge($v['color_gamut_srgb']));
+      row('CPU Cores', $v['hardware_concurrency'] ?? $v['cpu_cores']);
       row('Device Memory (GB)', $v['device_memory']);
       row('Touch Support', ynBadge($v['touch_support']));
-      row('Max Touch Points', $v['max_touch_points']);
       row('Battery Level', $v['battery_level'] !== null ? round(((float)$v['battery_level']) * 100) . '%' : '—');
       row('Battery Charging', $v['battery_charging'] === null ? '—' : ynBadge($v['battery_charging']));
       ?>
@@ -196,81 +239,155 @@ function flagExplanation(string $f): string {
     <h2>🎨 Stage 4 — Advanced Fingerprint</h2>
     <table class="kv">
       <?php
-      row('WebGL Renderer', $v['webgl_renderer']);
+      row('WebGL Supported', ynBadge($v['webgl_supported']));
       row('WebGL Vendor', $v['webgl_vendor']);
+      row('WebGL Renderer', $v['webgl_renderer']);
+      row('WebGL Unmasked Vendor', $v['webgl_unmasked_vendor']);
+      row('WebGL Unmasked Renderer', $v['webgl_unmasked_renderer']);
       row('WebGL Version', $v['webgl_version']);
-      row('Canvas Fingerprint', $v['canvas_fingerprint'], true);
+      row('Shading Language', $v['webgl_shading_language']);
+      row('Max Texture Size', $v['webgl_max_texture_size']);
+      row('Extensions Count', is_array($webglExt) ? count($webglExt) : 0);
+      row('Canvas Supported', ynBadge($v['canvas_supported']));
+      row('Canvas Hash', $v['canvas_hash'] ?? $v['canvas_fingerprint'], true);
+      row('Audio Supported', ynBadge($v['audio_supported']));
       row('Audio Fingerprint', $v['audio_fingerprint'], true);
-      row('Fonts Detected', $v['fonts_count']);
-      row('Fonts List', is_array($fonts) ? implode(', ', $fonts) : '');
-      row('Plugins Count', $v['plugins_count']);
+      row('Audio Sample Rate', $v['audio_sample_rate']);
+      row('Fonts Detected', (int)$v['fonts_count']);
+      row('Fonts List', is_array($fontsList) ? implode(', ', array_slice($fontsList, 0, 30)) : '');
+      row('Plugins Count', (int)$v['plugins_count']);
+      row('MIME Types Count', (int)$v['mime_types_count']);
       ?>
     </table>
   </section>
 
-  <!-- ============ Stage 5: Browser State ============ -->
+  <!-- ============ Stage 5: Storage / State ============ -->
   <section class="card">
-    <h2>🔒 Stage 5 — Browser State</h2>
+    <h2>🔒 Stage 5 — Browser Storage State</h2>
     <table class="kv">
       <?php
       row('Cookies Enabled', ynBadge($v['cookies_enabled']));
-      row('localStorage', ynBadge($v['local_storage_enabled']));
-      row('sessionStorage', ynBadge($v['session_storage_enabled']));
-      row('indexedDB', ynBadge($v['indexed_db_enabled']));
-      row('Do Not Track', $v['do_not_track']);
-      row('Incognito Mode', ynBadge($v['is_incognito']));
-      row('Bot Signal', ynBadge($v['is_bot']));
-      row('WebDriver', ynBadge($v['is_webdriver']));
+      row('Cookies Count', (int)$v['cookies_count']);
+      row('localStorage', ynBadge($v['localstorage_supported'] ?? $v['local_storage_enabled']));
+      row('localStorage Size (bytes)', (int)$v['localstorage_size']);
+      row('localStorage Keys', is_array($lsKeys) ? implode(', ', $lsKeys) : '');
+      row('sessionStorage', ynBadge($v['sessionstorage_supported'] ?? $v['session_storage_enabled']));
+      row('sessionStorage Keys', is_array($ssKeys) ? implode(', ', $ssKeys) : '');
+      row('IndexedDB', ynBadge($v['indexeddb_supported'] ?? $v['indexed_db_enabled']));
+      row('Service Worker', ynBadge($v['service_worker_supported']));
+      row('Cache API', ynBadge($v['cache_supported']));
+      row('Storage Quota (bytes)', $v['storage_quota']);
+      row('Storage Usage (bytes)', $v['storage_usage']);
+      row('Is Incognito', ynBadge($v['is_incognito']));
       ?>
     </table>
   </section>
 
-  <!-- ============ Stage 6: Network ============ -->
+  <!-- ============ Stage 6: Network Detail ============ -->
   <section class="card">
-    <h2>📡 Stage 6 — Network Info</h2>
+    <h2>📡 Stage 6 — Network & Connection</h2>
     <table class="kv">
       <?php
+      row('Connection API Supported', ynBadge($v['connection_supported']));
       row('Connection Type', $v['connection_type']);
-      row('Effective Type', $v['effective_type']);
-      row('Downlink (Mbps)', $v['downlink']);
-      row('RTT (ms)', $v['rtt']);
-      row('Save Data Mode', ynBadge($v['save_data']));
+      row('Effective Type', $v['connection_effective_type'] ?? $v['effective_type']);
+      row('Downlink (Mbps)', $v['connection_downlink'] ?? $v['downlink']);
+      row('RTT (ms)', $v['connection_rtt'] ?? $v['rtt']);
+      row('Save Data Mode', ynBadge($v['connection_save_data'] ?? $v['save_data']));
+      row('WebRTC Supported', ynBadge($v['webrtc_supported']));
+      row('WebRTC IP Count', (int)$v['webrtc_ip_count']);
+      row('WebRTC IPs', is_array($webrtcIPs) ? implode(', ', $webrtcIPs) : '', true);
       ?>
     </table>
   </section>
 
-  <!-- ============ Stage 7: Behavior ============ -->
+  <!-- ============ Stage 7: Behavior & Engagement ============ -->
   <section class="card">
     <h2>🖱️ Stage 7 — Behavior & Engagement</h2>
     <table class="kv">
       <?php
       row('Session Duration', $v['session_duration'] . ' seconds');
-      row('Scroll Depth Max', $v['scroll_depth_max'] . '%');
-      row('Mouse Movements', $v['mouse_movements']);
-      row('Clicks Count', $v['clicks_count']);
-      row('Keystrokes', $v['keystrokes_count']);
-      row('Tab Switches', $v['tab_switches']);
-      row('Pages Viewed', $v['pages_viewed']);
+      row('Page Visible Time', $v['page_visible_time'] . ' seconds');
+      row('Page Hidden Time', $v['page_hidden_time'] . ' seconds');
+      row('Mouse Movements', $v['mouse_movements_count'] ?? $v['mouse_movements']);
+      row('Mouse Clicks', $v['mouse_clicks_count'] ?? $v['clicks_count']);
+      row('Scroll Events', $v['scroll_events_count']);
+      row('Key Events', $v['key_events_count'] ?? $v['keystrokes_count']);
+      row('Tab Switches', (int)$v['tab_switches']);
+      row('Max Scroll Depth', $v['scroll_depth_max'] . '%');
+      row('Total Scroll Distance (px)', $v['total_scroll_distance']);
+      row('Pages Viewed', (int)$v['pages_viewed']);
       ?>
     </table>
   </section>
 
-  <!-- ============ Stage 8: Traffic Source ============ -->
+  <!-- ============ Stage 8: Permissions / Media / Speech ============ -->
   <section class="card">
-    <h2>🚦 Stage 8 — Traffic Source</h2>
+    <h2>🔐 Stage 8 — Permissions, Media & Speech</h2>
+    <table class="kv">
+      <?php
+      row('Permissions API', ynBadge($v['permissions_supported']));
+      if (!empty($permissions)) {
+          foreach ($permissions as $p => $state) {
+              row('  ' . ucfirst($p), $state);
+          }
+      }
+      row('Media Devices API', ynBadge($v['media_devices_supported']));
+      row('Audio Inputs', (int)$v['audio_inputs']);
+      row('Audio Outputs', (int)$v['audio_outputs']);
+      row('Video Inputs', (int)$v['video_inputs']);
+      row('Speech Synthesis', ynBadge($v['speech_supported']));
+      row('Voices Count', (int)$v['speech_voices_count']);
+      ?>
+    </table>
+  </section>
+
+  <!-- ============ Stage 9: Traffic Source ============ -->
+  <section class="card">
+    <h2>🚦 Stage 9 — Traffic Source & Page</h2>
     <table class="kv">
       <?php
       row('Traffic Source', ucfirst((string)$v['traffic_source']));
       row('Referrer', $v['referrer'], true);
       row('Referrer Domain', $v['referrer_domain']);
       row('Landing Page', $v['landing_page']);
-      row('Current Page', $v['page_url']);
+      row('Current Page URL', $v['page_url']);
+      row('Page Path', $v['page_pathname'] ?? $v['page_path']);
       row('Page Title', $v['page_title']);
+      row('Page Hostname', $v['page_hostname']);
       row('UTM Source', $v['utm_source']);
       row('UTM Medium', $v['utm_medium']);
       row('UTM Campaign', $v['utm_campaign']);
       row('UTM Content', $v['utm_content']);
       row('UTM Term', $v['utm_term']);
+      row('FBCLID', $v['fbclid']);
+      row('GCLID', $v['gclid']);
+      row('MSCLKID', $v['msclkid']);
+      row('TTCLID', $v['ttclid']);
+      ?>
+    </table>
+  </section>
+
+  <!-- ============ Stage 10: Codecs & Features ============ -->
+  <section class="card">
+    <h2>🎬 Stage 10 — Codecs & Feature Support</h2>
+    <table class="kv">
+      <?php
+      if (!empty($codecSupport) && is_array($codecSupport)) {
+          foreach ($codecSupport as $codec => $support) row(str_replace('_', ' ', $codec), $support ?: 'no');
+      } else {
+          row('Codec Data', '—');
+      }
+      ?>
+    </table>
+    <h3 style="margin-top:18px; color: var(--accent-2); font-size:14px;">Browser API Features</h3>
+    <table class="kv">
+      <?php
+      if (!empty($featureSupport) && is_array($featureSupport)) {
+          foreach ($featureSupport as $feat => $available) row(str_replace('_', ' ', $feat), ynBadge($available));
+      } else {
+          row('Feature Data', '—');
+      }
       ?>
     </table>
   </section>
@@ -289,6 +406,48 @@ function flagExplanation(string $f): string {
 <footer class="dash-footer">
   <p>Money Wise 2026 Tracker · Internal use only.</p>
 </footer>
+
+<script>
+(function() {
+  var btn = document.getElementById('btn-copy-full');
+  var toastWrap = document.getElementById('toast-container');
+
+  function showToast(msg, type) {
+    var t = document.createElement('div');
+    t.className = 'toast toast-' + (type || 'info');
+    t.textContent = msg;
+    toastWrap.appendChild(t);
+    setTimeout(function() { t.classList.add('show'); }, 10);
+    setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 300); }, 3500);
+  }
+
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; }
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+      document.body.appendChild(ta); ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  if (btn) btn.addEventListener('click', async function() {
+    showToast('Fetching JSON…', 'info');
+    try {
+      var res = await fetch('/api/get_json.php?ids=<?= (int)$v['id'] ?>', { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      if (data && data.error) throw new Error(data.error);
+      var ok = await copyToClipboard(JSON.stringify(data, null, 2));
+      showToast(ok ? '✓ Full visitor JSON copied to clipboard' : '✗ Clipboard write blocked', ok ? 'success' : 'error');
+    } catch (e) {
+      showToast('✗ Error: ' + e.message, 'error');
+    }
+  });
+})();
+</script>
 
 </body>
 </html>

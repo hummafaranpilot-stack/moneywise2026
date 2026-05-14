@@ -236,6 +236,16 @@ function duration(int $s): string {
     </div>
   </form>
 
+  <!-- ============ Bulk Actions ============ -->
+  <div class="bulk-actions-bar">
+    <span class="action-label">Bulk Actions</span>
+    <button id="btn-copy-selected" class="action-btn primary" disabled>📋 Copy Selected JSON (<span id="selected-count">0</span>)</button>
+    <button id="btn-copy-page" class="action-btn">📄 Copy Page JSON (<?= count($rows) ?>)</button>
+    <button id="btn-copy-all" class="action-btn">🗂️ Copy ALL JSON (Database)</button>
+    <a class="action-btn" href="?<?= h(http_build_query(array_merge($_GET, ['export' => 'csv']))) ?>">💾 Export CSV (Filtered)</a>
+  </div>
+  <div id="toast-container"></div>
+
   <!-- ============ Table ============ -->
   <section class="table-wrap">
     <div class="table-meta">
@@ -245,6 +255,7 @@ function duration(int $s): string {
     <table class="visitors-table">
       <thead>
         <tr>
+          <th class="col-check"><input type="checkbox" id="select-all-checkbox"></th>
           <th>Time</th>
           <th>IP / Location</th>
           <th>ISP / ASN</th>
@@ -261,7 +272,7 @@ function duration(int $s): string {
       </thead>
       <tbody>
       <?php if (empty($rows)): ?>
-        <tr><td colspan="12" class="empty">No visitors found for these filters.</td></tr>
+        <tr><td colspan="13" class="empty">No visitors found for these filters.</td></tr>
       <?php else: foreach ($rows as $r):
           $flagsArr = $r['risk_flags'] ? (json_decode($r['risk_flags'], true) ?: []) : [];
           $proxyBadges = [];
@@ -272,6 +283,7 @@ function duration(int $s): string {
           $riskClass = 'risk-' . $r['risk_level'];
       ?>
         <tr class="<?= h($riskClass) ?>">
+          <td class="col-check"><input type="checkbox" class="row-check" data-id="<?= (int)$r['id'] ?>"></td>
           <td class="nowrap"><?= h(date('M j, H:i', strtotime($r['visit_time']))) ?></td>
           <td>
             <div class="mono"><?= h($r['ip_address']) ?></div>
@@ -337,6 +349,96 @@ function duration(int $s): string {
 <footer class="dash-footer">
   <p>Money Wise 2026 Tracker · Internal use only · Data never shared.</p>
 </footer>
+
+<script>
+(function() {
+  'use strict';
+  var selectAll  = document.getElementById('select-all-checkbox');
+  var rowChecks  = document.querySelectorAll('.row-check');
+  var btnSel     = document.getElementById('btn-copy-selected');
+  var btnPage    = document.getElementById('btn-copy-page');
+  var btnAll     = document.getElementById('btn-copy-all');
+  var countEl    = document.getElementById('selected-count');
+  var toastWrap  = document.getElementById('toast-container');
+
+  function updateUI() {
+    var n = document.querySelectorAll('.row-check:checked').length;
+    countEl.textContent = n;
+    btnSel.disabled = n === 0;
+    btnSel.style.opacity = n === 0 ? '0.5' : '1';
+    var total = rowChecks.length;
+    selectAll.checked = n === total && total > 0;
+    selectAll.indeterminate = n > 0 && n < total;
+  }
+
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      rowChecks.forEach(function(cb) { cb.checked = selectAll.checked; });
+      updateUI();
+    });
+  }
+  rowChecks.forEach(function(cb) { cb.addEventListener('change', updateUI); });
+
+  function showToast(msg, type) {
+    var t = document.createElement('div');
+    t.className = 'toast toast-' + (type || 'info');
+    t.textContent = msg;
+    toastWrap.appendChild(t);
+    setTimeout(function() { t.classList.add('show'); }, 10);
+    setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 300); }, 3500);
+  }
+
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+      document.body.appendChild(ta); ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  async function fetchAndCopy(url, label) {
+    showToast('Fetching ' + label + '…', 'info');
+    try {
+      var res = await fetch(url, { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      if (data && data.error) throw new Error(data.error);
+      var text = JSON.stringify(data, null, 2);
+      var ok = await copyToClipboard(text);
+      if (ok) showToast('✓ Copied ' + (Array.isArray(data) ? data.length : 1) + ' visitor(s) JSON to clipboard', 'success');
+      else    showToast('✗ Clipboard write blocked. Use HTTPS or grant permission.', 'error');
+    } catch (e) {
+      showToast('✗ Error: ' + e.message, 'error');
+    }
+  }
+
+  if (btnSel) btnSel.addEventListener('click', function() {
+    var ids = Array.from(document.querySelectorAll('.row-check:checked')).map(function(cb) { return cb.dataset.id; });
+    if (!ids.length) return;
+    fetchAndCopy('/api/get_json.php?ids=' + ids.join(','), ids.length + ' selected');
+  });
+
+  if (btnPage) btnPage.addEventListener('click', function() {
+    var ids = Array.from(rowChecks).map(function(cb) { return cb.dataset.id; });
+    if (!ids.length) { showToast('No rows on page', 'error'); return; }
+    fetchAndCopy('/api/get_json.php?ids=' + ids.join(','), 'this page (' + ids.length + ')');
+  });
+
+  if (btnAll) btnAll.addEventListener('click', function() {
+    if (!confirm('Copy ALL visitors in database to clipboard? This may be a large amount of data.')) return;
+    fetchAndCopy('/api/get_json.php?all=1', 'all visitors');
+  });
+
+  updateUI();
+})();
+</script>
 
 </body>
 </html>
