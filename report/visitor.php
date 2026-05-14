@@ -443,33 +443,6 @@ function flagExplanation(string $f): string {
 </footer>
 
 <script>
-// ---------- Relative time (auto-refreshing every 30s) ----------
-(function() {
-  function relTime(ts) {
-    var diff = Math.floor(Date.now() / 1000) - ts;
-    if (diff < 5)        return 'just now';
-    if (diff < 60)       return diff + 's ago';
-    var m = Math.floor(diff / 60);
-    if (m < 60)          return m + (m === 1 ? ' min ago' : ' mins ago');
-    var h = Math.floor(m / 60);
-    if (h < 24)          return h + (h === 1 ? ' hr ago' : ' hrs ago');
-    var d = Math.floor(h / 24);
-    if (d < 7)           return d + (d === 1 ? ' day ago' : ' days ago');
-    if (d < 30)          return Math.floor(d/7) + 'w ago';
-    return null;
-  }
-  function refreshTimes() {
-    document.querySelectorAll('time[data-ts]').forEach(function(el) {
-      var ts = parseInt(el.dataset.ts, 10);
-      if (!ts) return;
-      var rel = relTime(ts);
-      if (rel) el.textContent = rel;
-    });
-  }
-  refreshTimes();
-  setInterval(refreshTimes, 30000);
-})();
-
 (function() {
   var btn = document.getElementById('btn-copy-full');
   var toastWrap = document.getElementById('toast-container');
@@ -531,7 +504,7 @@ function flagExplanation(string $f): string {
       var ts = parseInt(el.getAttribute('data-ts'), 10);
       if (!ts) return;
       if (!el.dataset.absolute) el.dataset.absolute = el.textContent;
-      el.textContent = relTime(ts) + ' (' + el.dataset.absolute + ')';
+      el.textContent = relTime(ts);
       el.title = el.dataset.absolute;
     });
   }

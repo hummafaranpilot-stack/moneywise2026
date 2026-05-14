@@ -490,8 +490,7 @@ function pktTime(?string $mysqlDt): array {
       var ts = parseInt(el.getAttribute('data-ts'), 10);
       if (!ts) return;
       if (!el.dataset.absolute) el.dataset.absolute = el.textContent;
-      el.innerHTML = '<span class="time-rel">' + relTime(ts) + '</span>'
-                   + '<span class="time-abs">' + el.dataset.absolute + '</span>';
+      el.textContent = relTime(ts);
       el.title = el.dataset.absolute;
     });
   }
