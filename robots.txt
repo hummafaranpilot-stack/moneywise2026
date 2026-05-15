@@ -1,10 +1,46 @@
+# ============================================================
+# moneywise2026.com — crawler policy
+# ============================================================
+
 User-agent: *
 Allow: /
 
-# Block crawling of error page from indexing
-Disallow: /404.html
+# Explicitly allow major search and AI crawlers
+User-agent: Googlebot
+Allow: /
 
-# Block tracker backend and admin dashboard
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Block crawling of error/admin/internal paths
+Disallow: /404.html
 Disallow: /api/
 Disallow: /report/
 Disallow: /database/

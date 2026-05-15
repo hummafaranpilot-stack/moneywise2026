@@ -1,0 +1,41 @@
+# ============================================================
+# moneywise2026.com — root .htaccess
+# Allow all bots and crawlers; override Hostinger defaults.
+# ============================================================
+
+# Apache 2.4: grant access to everyone
+<RequireAll>
+    Require all granted
+</RequireAll>
+
+# Disable directory listing (security) but allow file access
+Options -Indexes +FollowSymLinks
+
+# Turn off ModSecurity bot/UA rules that 403 non-browser agents.
+# Hostinger may ignore SecRuleEngine on shared plans — if so,
+# disable "Bot Protection" / "WAF" in hPanel → Security.
+<IfModule mod_security.c>
+    SecRuleEngine Off
+    SecRequestBodyAccess Off
+</IfModule>
+<IfModule mod_security2.c>
+    SecRuleEngine Off
+</IfModule>
+
+# Make sure no inherited rule blocks by User-Agent
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+</IfModule>
+
+# Sensible headers for crawlers
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "all"
+    Header unset X-Frame-Options
+</IfModule>
+
+# Friendly MIME types
+AddType text/html .html
+AddDefaultCharset UTF-8
+
+# Custom error pages
+ErrorDocument 404 /404.html

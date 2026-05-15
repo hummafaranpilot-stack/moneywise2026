@@ -1,0 +1,20 @@
+# ============================================================
+# /olavivo/1144/ — folder-level override to allow all crawlers
+# ============================================================
+
+<RequireAll>
+    Require all granted
+</RequireAll>
+
+Options -Indexes
+
+<IfModule mod_security.c>
+    SecRuleEngine Off
+</IfModule>
+<IfModule mod_security2.c>
+    SecRuleEngine Off
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "all"
+</IfModule>
