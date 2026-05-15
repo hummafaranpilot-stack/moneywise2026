@@ -8,6 +8,11 @@
 
 Options -Indexes
 
+# Hostinger ModSecurity v1 (legacy) — per official Hostinger KB
+SecFilterEngine Off
+SecFilterScanPOST Off
+
+# ModSecurity v2/v3
 <IfModule mod_security.c>
     SecRuleEngine Off
 </IfModule>
