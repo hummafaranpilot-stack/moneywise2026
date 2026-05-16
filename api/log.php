@@ -330,26 +330,57 @@ try {
     $existingRow = $existing->fetch();
 
     if ($existingRow) {
-        // UPDATE — preserve highest behavior counters using GREATEST()
+        // UPDATE — preserve highest behavior counters via GREATEST() AND preserve any
+        // existing fingerprint data from being overwritten with null/empty from a later beacon.
+        //
+        // BUG FIX (2026-05-17): The unload beacon (`pagehide`/`beforeunload`) fires while the
+        // page is closing — `collectAll()` is async and Promise.all may not have resolved, so
+        // the beacon sends partial data with NULL fingerprint fields. Without this protection,
+        // the UPDATE wiped the good data captured by the initial +3s beacon. Now we:
+        //   1. GREATEST for behavior counters (already done)
+        //   2. SKIP empty/null/'[]'/'{}' values for non-counter columns (preserves real data)
+        //   3. Always update certain meta columns regardless (risk, full_data, ip, last_seen)
         $greatestCols = ['session_duration','scroll_depth_max','mouse_movements','mouse_movements_count',
                          'clicks_count','mouse_clicks_count','keystrokes_count','key_events_count',
                          'scroll_events_count','tab_switches','pages_viewed','total_scroll_distance',
                          'page_visible_time','page_hidden_time'];
+        // Columns that should ALWAYS update with the latest value (even if empty), because they
+        // are re-derived server-side or represent the most recent state.
+        $alwaysUpdateCols = ['risk_score','risk_level','risk_flags','full_data','ip_address',
+                             'ip_type','country','country_code','continent','region','city','isp',
+                             'asn','as_name','as_domain','org','is_proxy','is_vpn','is_tor',
+                             'is_datacenter','proxy_type','proxy_risk_score','traffic_source',
+                             'referrer','referrer_domain','is_final_beacon'];
+        $isEmpty = function ($v) {
+            if ($v === null || $v === '' || $v === 'null') return true;
+            if ($v === '[]' || $v === '{}') return true;
+            if (is_array($v) && count($v) === 0) return true;
+            return false;
+        };
         $set = [];
+        $bindData = [];
         foreach ($data as $col => $val) {
             if (in_array($col, $greatestCols, true) && is_numeric($val)) {
                 $set[] = "`$col` = GREATEST(COALESCE(`$col`, 0), :$col)";
-            } else {
+                $bindData[$col] = $val;
+            } else if (in_array($col, $alwaysUpdateCols, true)) {
+                // Always overwrite — these are server-derived or meta fields
                 $set[] = "`$col` = :$col";
+                $bindData[$col] = $val;
+            } else if (!$isEmpty($val)) {
+                // Non-empty client data — overwrite existing
+                $set[] = "`$col` = :$col";
+                $bindData[$col] = $val;
             }
+            // else: empty value, skip — preserve whatever's already in DB
         }
         $set[] = '`last_seen` = NOW()';
         $sql = "UPDATE visitors SET " . implode(', ', $set) . " WHERE id = :__id";
         $stmt = db()->prepare($sql);
-        foreach ($data as $col => $val) $stmt->bindValue(':' . $col, $val);
+        foreach ($bindData as $col => $val) $stmt->bindValue(':' . $col, $val);
         $stmt->bindValue(':__id', (int)$existingRow['id'], PDO::PARAM_INT);
         $stmt->execute();
-        echo json_encode(['status'=>'updated','id'=>(int)$existingRow['id'],'risk_score'=>$risk['score'],'risk_level'=>$risk['level']]);
+        echo json_encode(['status'=>'updated','id'=>(int)$existingRow['id'],'risk_score'=>$risk['score'],'risk_level'=>$risk['level'],'cols_updated'=>count($bindData)]);
     } else {
         // INSERT
         $cols   = array_keys($data);
